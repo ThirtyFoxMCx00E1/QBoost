@@ -1,0 +1,156 @@
+{
+  "games": {
+    "minecraft": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/Minecraft.mp4",
+      "developer": "Mojang Studios",
+      "releaseDate": "Oct 7, 2011",
+      "languages": "English, Spanish, German, French, Japanese",
+      "engine": "Bedrock Engine / LWJGL",
+      "summary": "A sandbox adventure game of block building and creative exploration."
+    },
+    "genshin": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/genshin.mp4",
+      "developer": "HoYoverse",
+      "releaseDate": "Sep 28, 2020",
+      "languages": "English, Chinese, Japanese, Korean, Spanish",
+      "engine": "Unity",
+      "summary": "An open-world action RPG featuring elemental magic and character swapping."
+    },
+    "pubgm": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/pubg.mp4",
+      "developer": "LIGHTSPEED STUDIOS / KRAFTON",
+      "releaseDate": "Mar 19, 2018",
+      "languages": "English, Spanish, Portuguese, Russian, Arabic",
+      "engine": "Unreal Engine 4",
+      "summary": "A highly popular mobile tactical multiplayer battle royale shooter game."
+    },
+    "coc": {
+      "trailer": "",
+      "developer": "Supercell",
+      "releaseDate": "Oct 7, 2013",
+      "languages": "English, Spanish, French, German, Japanese",
+      "engine": "Proprietary",
+      "summary": "An online multiplayer combat strategy game where players build villages."
+    },
+    "codm": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/codm.mp4",
+      "developer": "Activision / TiMi Studios",
+      "releaseDate": "Oct 1, 2019",
+      "languages": "English, Spanish, French, Japanese, Portuguese",
+      "engine": "Unity",
+      "summary": "A fast-paced multiplayer and battle royale first-person shooter."
+    },
+    "dmc": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/devilmaycry.mp4",
+      "developer": "NebulaJoy / CAPCOM",
+      "releaseDate": "Jan 10, 2024",
+      "languages": "English, Chinese, Japanese, Spanish, German",
+      "engine": "Unity",
+      "summary": "An action hack-and-slash game built specifically for mobile platforms."
+    },
+    "dolphin": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/dolphin.mp4",
+      "developer": "Dolphin Emulator Project",
+      "releaseDate": "2013 (Android)",
+      "languages": "English, Spanish, French, German, Chinese",
+      "engine": "C++",
+      "summary": "An open-source, powerful emulator for GameCube and Wii systems."
+    },
+    "worms4": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/worms4.mp4",
+      "developer": "Team17",
+      "releaseDate": "Jan 5, 2016",
+      "languages": "English, French, Italian, German, Spanish",
+      "engine": "Proprietary",
+      "summary": "A classic, turn-based tactical artillery 2D strategy game."
+    },
+    "wuthering": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/wutheringwaves.mp4",
+      "developer": "Kuro Games",
+      "releaseDate": "May 22, 2024",
+      "languages": "English, Japanese, Chinese, Korean, Spanish",
+      "engine": "Unreal Engine 4",
+      "summary": "An open-world action RPG featuring fast-paced, fluid combat."
+    },
+    "gta_sa": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/gtasa.mp4",
+      "developer": "Rockstar Games",
+      "releaseDate": "Dec 19, 2013",
+      "languages": "English, Spanish, French, German, Japanese",
+      "engine": "RenderWare",
+      "summary": "An open-world, story-driven action classic set in the 1990s."
+    },
+    "sky": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/sky.mp4",
+      "developer": "thatgamecompany",
+      "releaseDate": "Jul 18, 2019",
+      "languages": "English, Japanese, Korean, French, Spanish",
+      "engine": "Proprietary",
+      "summary": "A peaceful and artistic social multiplayer indie adventure game."
+    },
+    "roblox": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/Roblox.mp4",
+      "developer": "Roblox Corporation",
+      "releaseDate": "Jul 16, 2014",
+      "languages": "English, Spanish, French, German, Portuguese",
+      "engine": "Luau / Roblox Engine",
+      "summary": "An online platform for playing and creating user-generated games."
+    },
+    "blood_strike": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/bloodstrike.mp4",
+      "developer": "NetEase Games",
+      "releaseDate": "Oct 28, 2023",
+      "languages": "English, Arabic, Portuguese, Spanish, Thai",
+      "engine": "Messiah Engine",
+      "summary": "A fast-paced, highly optimized battle royale FPS for mobile."
+    },
+    "asphalt8": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/asphalt8.mp4",
+      "developer": "Gameloft",
+      "releaseDate": "Aug 22, 2013",
+      "languages": "English, Spanish, French, German, Japanese",
+      "engine": "Jetwave (Proprietary)",
+      "summary": "An arcade racing game featuring gravity-defying stunt tracks."
+    },
+    "getting_over_it": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/gettingoverit.mp4",
+      "developer": "Noodlecake Studios / Bennett Foddy",
+      "releaseDate": "Oct 6, 2017",
+      "languages": "English",
+      "engine": "Unity",
+      "summary": "A challenging climbing game featuring a man in a pot and a hammer."
+    },
+    "human_fall_flat": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/humanfallflat.mp4",
+      "developer": "No Brakes Games",
+      "releaseDate": "Jul 22, 2016",
+      "languages": "English, Spanish, French, German, Japanese",
+      "engine": "Unity",
+      "summary": "A physics-based puzzle platformer featuring customizable wobbly characters."
+    },
+    "oceanhorn": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/oceanhorn.mp4",
+      "developer": "Cornfox & Bros. / FDG Entertainment",
+      "releaseDate": "Dec 15, 2016",
+      "languages": "English, Spanish, German, French, Japanese",
+      "engine": "Unity",
+      "summary": "An action-adventure RPG heavily inspired by traditional console classics."
+    },
+    "dysmantle": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/dysmantle.mp4",
+      "developer": "10tons",
+      "releaseDate": "Nov 16, 2021",
+      "languages": "English, Spanish, French, German, Japanese",
+      "engine": "Proprietary",
+      "summary": "A post-apocalyptic survival action RPG focusing on dismantling objects."
+    },
+    "little_nightmares": {
+      "trailer": "https://res.cloudinary.com/infh8gxi/video/upload/littlenightmares.mp4",
+      "developer": "Tarsier Studios / Playdigious",
+      "releaseDate": "Dec 12, 2023",
+      "languages": "English, Spanish, French, Japanese, German",
+      "engine": "Unreal Engine 4",
+      "summary": "A suspenseful and creepy puzzle-platformer set in a dark world."
+    }
+  }
+}
