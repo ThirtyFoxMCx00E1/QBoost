@@ -8,11 +8,7 @@ object TelemetryFormat {
 
     const val NA = "N/A"
 
-    fun fps(stats: PerformanceStats): String = when {
-        stats.fps < 0 -> "--"
-        stats.fpsIsEstimated -> "~${stats.fps}"
-        else -> "${stats.fps}"
-    }
+    fun fps(stats: PerformanceStats): String = if (stats.fps >= 0) "${stats.fps}" else "--"
 
     /** "52%", "~52%" when estimated from clock speeds, or "N/A" when the ROM blocks the data. */
     fun load(percent: Int, estimated: Boolean = false): String =

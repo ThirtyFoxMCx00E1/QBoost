@@ -138,3 +138,19 @@ tool_dns	DNS Tuner
 tool_screenshot	Screenshot											
 tool_gyro	Gyro Calibration											
 library_view_toggle	Switch library view											
+handle_position	Pin handle to outer corner											
+handle_position_desc	Off keeps the edge tab just inside the visible screen area. On pins it right at the screen corner.											
+set_appearance	Appearance												
+theme_mode	Theme												
+theme_default	Default												
+theme_dark	Dark												
+theme_light	Light												
+theme_custom	Custom												
+theme_background	Background color												
+theme_accent	Accent color												
+theme_text_color	Text color												
+theme_opacity	UI opacity												
+theme_opacity_desc	How see-through cards and panels are in your custom theme												
+theme_reset_desc	Switch back to Qboost's default look												
+apply	Apply												
+reset_default	Reset to Default												

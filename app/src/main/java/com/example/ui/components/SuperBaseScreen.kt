@@ -327,7 +327,7 @@ fun SuperBaseScreen(
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = if (hasOverlayPermission) {
-                        "Qboost v10.012.02 Game Space is enabled! Open the in-game panel from the left edge for the System Monitor (FPS, CPU, GPU, RAM), saturation, Upscaler, Frame gen and floating apps."
+                        "Qboost v10.013.01 Game Space is enabled! Open the in-game panel from the left edge for the System Monitor (FPS, CPU, GPU, RAM), saturation, Upscaler, Frame gen and floating apps."
                     } else {
                         "Getting 'App was denied access' when turning on 'Display over other apps'? This is Android 13+ protection for apps downloaded from Chrome."
                     },

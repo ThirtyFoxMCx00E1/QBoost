@@ -55,7 +55,9 @@ import com.example.ui.QboostViewModel
 import com.example.ui.QboostGameSpaceScreen
 import com.example.ui.SplashScreen
 import com.example.ui.theme.CyberDarkBg
+import com.example.ui.theme.LocalQboostColors
 import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.resolveQboostColors
 
 class MainActivity : ComponentActivity() {
 
@@ -189,6 +191,7 @@ fun QboostApp(viewModel: QboostViewModel) {
     val detailsGame by viewModel.detailsGame.collectAsStateWithLifecycle()
     val details by viewModel.details.collectAsStateWithLifecycle()
     val detailsLoading by viewModel.detailsLoading.collectAsStateWithLifecycle()
+    val libraryViewMode by viewModel.libraryViewMode.collectAsStateWithLifecycle()
 
     val overlayPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -236,10 +239,14 @@ fun QboostApp(viewModel: QboostViewModel) {
     }
 
     val layoutDirection = if (I18n.isRtl(settings.language)) LayoutDirection.Rtl else LayoutDirection.Ltr
+    val qboostColors = remember(settings.themeMode, settings.customBackground, settings.customAccent, settings.customText) {
+        resolveQboostColors(settings)
+    }
 
     CompositionLocalProvider(
         LocalLanguage provides settings.language,
-        LocalLayoutDirection provides layoutDirection
+        LocalLayoutDirection provides layoutDirection,
+        LocalQboostColors provides qboostColors
     ) {
     AnimatedContent(
         targetState = currentScreen,
@@ -313,7 +320,9 @@ fun QboostApp(viewModel: QboostViewModel) {
                     isGamepadConnected = isGamepadConnected,
                     gamepadActions = viewModel.gamepadActions,
                     onOpenSettings = { viewModel.openSettings() },
-                    onViewDetails = { viewModel.openDetails(it) }
+                    onViewDetails = { viewModel.openDetails(it) },
+                    libraryViewMode = libraryViewMode,
+                    onLibraryViewModeChange = { viewModel.setLibraryViewMode(it) }
                 )
             }
             AppScreen.SETTINGS -> {
@@ -335,6 +344,10 @@ fun QboostApp(viewModel: QboostViewModel) {
                     onOpenNotificationSettings = openNotificationSettings,
                     onUpdateAlertsChange = { viewModel.setUpdateAlerts(it) },
                     onHandleOpacityChange = { viewModel.setHandleOpacity(it) },
+                    onHandleOutsideEdgeChange = { viewModel.setHandleOutsideEdge(it) },
+                    onThemeModeChange = { viewModel.setThemeMode(it) },
+                    onApplyCustomTheme = { bg, accent, text, opacity -> viewModel.applyCustomTheme(bg, accent, text, opacity) },
+                    onResetTheme = { viewModel.resetThemeToDefault() },
                     onPanelOpacityChange = { viewModel.setPanelOpacity(it) },
                     onShowDockChange = { viewModel.setShowDock(it) },
                     onScalerSharpnessChange = { viewModel.setScalerSharpness(it) },

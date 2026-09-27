@@ -1,5 +1,24 @@
 # Changelog
 
+## v10.013.01 (versionCode 24)
+
+**Panel handle**: no longer drags - it's now fixed to the top-left corner. Added a Settings > Panel
+toggle to pin it either just inside the visible screen area, or right at the outer corner.
+
+**Grid library view**: added the "not installed" cloud-download badge (previously only on the carousel
+view) and a "View details" button at the bottom-left. Fixed a real bug where switching to grid view,
+then opening a game's details and going back, silently reset you to carousel view - the view mode is
+now kept in the ViewModel instead of screen-local state, so it survives that trip.
+
+**System Monitor**: removed the "~" prefix from FPS/CPU readings (plain numbers only now) and removed
+the redundant "x" close button - the System Monitor tile in the panel already toggles it off.
+
+**Appearance (new)**: a new Settings section with Default / Dark / Light / Custom themes. Custom lets
+you pick a background, accent and text color from preset swatches plus a UI opacity slider, committed
+with an Apply button (or reverted with Reset to Default). This first pass covers the app's main shared
+chrome (Game Space and Settings screens' backgrounds and top-level text) - it is not yet wired into
+every single screen and icon in the app.
+
 ## v10.012.02 (versionCode 23)
 
 **Library grid view**: now 6 columns instead of 8, so each tile is noticeably bigger and closer in size

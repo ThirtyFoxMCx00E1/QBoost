@@ -114,6 +114,7 @@ class QboostOverlayService : Service() {
 
     @Volatile
     private var isPanelOpen = false
+    private var handleX = 0
     private var handleY = 0
     private var expandedY = 0
 
@@ -227,6 +228,7 @@ class QboostOverlayService : Service() {
     private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == SettingsStore.KEY_LANGUAGE ||
             key == SettingsStore.KEY_HANDLE_OPACITY ||
+            key == SettingsStore.KEY_HANDLE_OUTSIDE_EDGE ||
             key == SettingsStore.KEY_PANEL_OPACITY ||
             key == SettingsStore.KEY_SHOW_DOCK
         ) {
@@ -473,7 +475,9 @@ class QboostOverlayService : Service() {
             windowManager = wm
             val screenH = resources.displayMetrics.heightPixels
             val panelH = min(dp(PANEL_HEIGHT_DP), screenH - dp(16))
-            if (handleY == 0) handleY = dp(150)
+            val cornerInset = if (settings.handleOutsideEdge) 0 else dp(8)
+            handleY = cornerInset
+            handleX = cornerInset
             expandedY = ((screenH - panelH) / 2).coerceAtLeast(dp(6))
 
             val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -493,7 +497,7 @@ class QboostOverlayService : Service() {
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
-                x = 0
+                x = handleX
                 y = handleY
             }
             overlayParams = params
@@ -547,35 +551,20 @@ class QboostOverlayService : Service() {
         )
         handle.addView(chevron)
 
-        var initialY = 0
         var initialTouchX = 0f
         var initialTouchY = 0f
-        var isDragging = false
         handle.setOnTouchListener { _, event ->
-            val params = overlayParams ?: return@setOnTouchListener false
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    initialY = params.y
                     initialTouchX = event.rawX
                     initialTouchY = event.rawY
-                    isDragging = false
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val dy = event.rawY - initialTouchY
-                    if (abs(dy) > dp(8)) isDragging = true
-                    if (isDragging) {
-                        val screenH = resources.displayMetrics.heightPixels
-                        params.y = (initialY + dy.toInt()).coerceIn(0, screenH - dp(86))
-                        handleY = params.y
-                        overlayRoot?.let { windowManager?.updateViewLayout(it, params) }
-                    }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
                     val dx = event.rawX - initialTouchX
-                    // a tap, or a swipe to the right, opens the panel
-                    if (!isDragging && (abs(dx) < dp(16) || dx > dp(20))) {
+                    val dy = event.rawY - initialTouchY
+                    // A tap, or a swipe to the right, opens the panel. The handle no longer drags.
+                    if (abs(dy) < dp(16) && (abs(dx) < dp(16) || dx > dp(20))) {
                         UiSounds.play()
                         setPanelExpanded(true)
                     }
@@ -1083,7 +1072,7 @@ class QboostOverlayService : Service() {
         } else {
             panelContainer?.visibility = View.GONE
             handleView?.visibility = View.VISIBLE
-            params.x = 0
+            params.x = handleX
             params.y = handleY
             params.flags = params.flags and WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH.inv()
         }
@@ -1490,7 +1479,7 @@ class QboostOverlayService : Service() {
             gauge?.labelText = "FPS"
             gauge?.fraction = if (fpsAvailable) s.fps.toFloat() / maxOf(s.refreshRate, 60).toFloat() else 0f
 
-            cpuValueText?.text = TelemetryFormat.load(s.cpuUsagePercent, s.cpuLoadEstimated)
+            cpuValueText?.text = TelemetryFormat.load(s.cpuUsagePercent)
             cpuBar?.progress = s.cpuUsagePercent.coerceAtLeast(0)
             memValueText?.text = "${s.ramUsedPercent}%"
             memBar?.progress = s.ramUsedPercent
@@ -1505,7 +1494,7 @@ class QboostOverlayService : Service() {
             if (isMonitorHudOpen) {
                 monitorHudValues["fps"]?.text = TelemetryFormat.fps(s)
                 monitorHudValues["gpu"]?.text = TelemetryFormat.load(s.gpuUsagePercent)
-                monitorHudValues["cpu"]?.text = TelemetryFormat.load(s.cpuUsagePercent, s.cpuLoadEstimated)
+                monitorHudValues["cpu"]?.text = TelemetryFormat.load(s.cpuUsagePercent)
                 monitorHudValues["ram"]?.text = "${s.ramUsedPercent}%"
                 monitorHudValues["mem"]?.text = if (s.swapTotalMb > 0L) "${TelemetryFormat.gb(s.swapUsedMb)}GB" else "off"
                 monitorHudValues["temp"]?.text = if (s.cpuTempC > 0f) "${TelemetryFormat.temp(s.cpuTempC)}" else TelemetryFormat.NA
@@ -1613,19 +1602,6 @@ class QboostOverlayService : Service() {
             addStat("ram", "RAM")
             addStat("mem", "MEM")
             addStat("temp", "TEMP")
-
-            val closeView = TextView(this).apply {
-                text = "×"
-                setTextColor(Color.parseColor("#FF5252"))
-                textSize = 14f
-                typeface = Typeface.DEFAULT_BOLD
-                setPadding((10 * density).toInt(), 0, 0, 0)
-                setOnClickListener {
-                    UiSounds.play()
-                    hideSystemMonitorHud()
-                }
-            }
-            root.addView(closeView)
 
             // Drag the whole monitor anywhere on the screen
             root.setOnTouchListener(object : View.OnTouchListener {

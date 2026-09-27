@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,14 +34,15 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -53,10 +55,13 @@ import com.example.i18n.I18n
 import com.example.i18n.tr
 import com.example.settings.AppSettings
 import com.example.ui.components.qClickable
+import com.example.ui.theme.LocalQboostColors
 import com.example.ui.theme.QboostBlue
 import com.example.ui.theme.QboostBlueGlow
 import com.example.ui.theme.TextGray
 import com.example.ui.theme.TextWhite
+import com.example.ui.theme.ThemeMode
+import com.example.ui.theme.ThemeSwatches
 import kotlin.math.roundToInt
 
 enum class SettingsCategory {
@@ -65,6 +70,7 @@ enum class SettingsCategory {
     NOTIFICATIONS,
     PANEL,
     DISPLAY,
+    APPEARANCE,
     ABOUT
 }
 
@@ -91,6 +97,10 @@ fun SettingsScreen(
     onOpenNotificationSettings: () -> Unit,
     onUpdateAlertsChange: (Boolean) -> Unit,
     onHandleOpacityChange: (Float) -> Unit,
+    onHandleOutsideEdgeChange: (Boolean) -> Unit,
+    onThemeModeChange: (String) -> Unit,
+    onApplyCustomTheme: (background: Int, accent: Int, text: Int, opacity: Float) -> Unit,
+    onResetTheme: () -> Unit,
     onPanelOpacityChange: (Float) -> Unit,
     onShowDockChange: (Boolean) -> Unit,
     onScalerSharpnessChange: (Float) -> Unit,
@@ -114,15 +124,12 @@ fun SettingsScreen(
     var category by remember { mutableStateOf(SettingsCategory.GENERAL) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showHintsDialog by remember { mutableStateOf(false) }
+    val qboostColors = LocalQboostColors.current
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                Brush.linearGradient(
-                    listOf(Color(0xFF0A1220), Color(0xFF0B1D33), Color(0xFF0E1830))
-                )
-            )
+            .background(qboostColors.background)
     ) {
         Column(
             modifier = Modifier
@@ -186,6 +193,7 @@ fun SettingsScreen(
                                 SettingsCategory.NOTIFICATIONS -> tr("set_notifications")
                                 SettingsCategory.PANEL -> tr("set_panel")
                                 SettingsCategory.DISPLAY -> tr("set_display")
+                                SettingsCategory.APPEARANCE -> tr("set_appearance")
                                 SettingsCategory.ABOUT -> tr("set_about")
                             },
                             selected = item == category,
@@ -293,6 +301,13 @@ fun SettingsScreen(
                             }
                             RowDivider()
                             SettingRow(
+                                title = tr("handle_position"),
+                                description = tr("handle_position_desc"),
+                                onClick = { onHandleOutsideEdgeChange(!settings.handleOutsideEdge) },
+                                testTag = "setting_handle_position"
+                            ) { SettingSwitch(checked = settings.handleOutsideEdge) }
+                            RowDivider()
+                            SettingRow(
                                 title = tr("panel_opacity"),
                                 description = tr("panel_opacity_desc")
                             ) {
@@ -331,6 +346,157 @@ fun SettingsScreen(
                                 onClick = onResetSaturation,
                                 testTag = "setting_reset_saturation"
                             ) { ValueChevron("100%") }
+                        }
+
+                        SettingsCategory.APPEARANCE -> {
+                            var pendingBackground by remember(settings.customBackground) {
+                                mutableStateOf(Color(settings.customBackground))
+                            }
+                            var pendingAccent by remember(settings.customAccent) {
+                                mutableStateOf(Color(settings.customAccent))
+                            }
+                            var pendingText by remember(settings.customText) {
+                                mutableStateOf(Color(settings.customText))
+                            }
+                            var pendingOpacity by remember(settings.customOpacity) {
+                                mutableFloatStateOf(settings.customOpacity)
+                            }
+
+                            Text(
+                                text = tr("theme_mode"),
+                                color = TextGray,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                listOf(
+                                    ThemeMode.DEFAULT to tr("theme_default"),
+                                    ThemeMode.DARK to tr("theme_dark"),
+                                    ThemeMode.LIGHT to tr("theme_light"),
+                                    ThemeMode.CUSTOM to tr("theme_custom")
+                                ).forEach { (mode, label) ->
+                                    val isSelected = settings.themeMode == mode
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(if (isSelected) QboostBlue else Color(0xFF1B2438))
+                                            .qClickable { onThemeModeChange(mode) }
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            color = TextWhite,
+                                            fontSize = 12.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+
+                            if (settings.themeMode == ThemeMode.CUSTOM) {
+                                RowDivider()
+                                Text(
+                                    text = tr("theme_background"),
+                                    color = TextGray,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                ColorSwatchRow(
+                                    swatches = ThemeSwatches.backgrounds,
+                                    selected = pendingBackground,
+                                    onSelect = { pendingBackground = it }
+                                )
+
+                                RowDivider()
+                                Text(
+                                    text = tr("theme_accent"),
+                                    color = TextGray,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                ColorSwatchRow(
+                                    swatches = ThemeSwatches.accents,
+                                    selected = pendingAccent,
+                                    onSelect = { pendingAccent = it }
+                                )
+
+                                RowDivider()
+                                Text(
+                                    text = tr("theme_text_color"),
+                                    color = TextGray,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                ColorSwatchRow(
+                                    swatches = ThemeSwatches.text,
+                                    selected = pendingText,
+                                    onSelect = { pendingText = it }
+                                )
+
+                                RowDivider()
+                                SettingRow(
+                                    title = tr("theme_opacity"),
+                                    description = tr("theme_opacity_desc")
+                                ) {
+                                    SettingSlider(
+                                        value = pendingOpacity,
+                                        valueRange = 0.4f..1f,
+                                        onValueChange = { pendingOpacity = it },
+                                        tag = "setting_theme_opacity"
+                                    )
+                                }
+
+                                RowDivider()
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(QboostBlue)
+                                            .qClickable {
+                                                onApplyCustomTheme(
+                                                    pendingBackground.toArgb(),
+                                                    pendingAccent.toArgb(),
+                                                    pendingText.toArgb(),
+                                                    pendingOpacity
+                                                )
+                                            }
+                                            .padding(vertical = 12.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(tr("apply"), color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color(0xFF1B2438))
+                                            .qClickable { onResetTheme() }
+                                            .padding(vertical = 12.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(tr("reset_default"), color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            } else {
+                                RowDivider()
+                                SettingRow(
+                                    title = tr("reset_default"),
+                                    description = tr("theme_reset_desc"),
+                                    onClick = onResetTheme,
+                                    testTag = "setting_reset_theme"
+                                ) { ValueChevron("") }
+                            }
                         }
 
                         SettingsCategory.ABOUT -> {
@@ -504,6 +670,32 @@ private fun ValueText(text: String) {
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.widthIn(max = 260.dp)
     )
+}
+
+@Composable
+private fun ColorSwatchRow(swatches: List<Color>, selected: Color, onSelect: (Color) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        swatches.forEach { swatch ->
+            val isSelected = swatch == selected
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(swatch)
+                    .then(
+                        if (isSelected) {
+                            Modifier.border(2.dp, TextWhite, CircleShape)
+                        } else {
+                            Modifier.border(1.dp, Color(0x33FFFFFF), CircleShape)
+                        }
+                    )
+                    .qClickable { onSelect(swatch) }
+            )
+        }
+    }
 }
 
 @Composable

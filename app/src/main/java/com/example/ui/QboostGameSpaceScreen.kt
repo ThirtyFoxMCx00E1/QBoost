@@ -54,6 +54,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -79,7 +80,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
@@ -131,6 +131,7 @@ import com.example.ui.components.SuperBaseScreen
 import com.example.ui.components.clickSound
 import com.example.ui.components.qClickable
 import com.example.ui.theme.CyberDarkBg
+import com.example.ui.theme.LocalQboostColors
 import com.example.ui.theme.QboostBlue
 import com.example.ui.theme.QboostBlueDark
 import com.example.ui.theme.QboostBlueGlow
@@ -203,11 +204,11 @@ fun QboostGameSpaceScreen(
     gamepadActions: Flow<GamepadAction> = emptyFlow(),
     onOpenSettings: () -> Unit = {},
     onViewDetails: (GameItem) -> Unit = {},
+    libraryViewMode: Int = 0,
+    onLibraryViewModeChange: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var activeTab by remember { mutableStateOf(GameSpaceTab.LIBRARY) }
-    // 0 = the normal horizontal carousel, 1 = the scrollable poster grid
-    var libraryViewMode by remember { mutableIntStateOf(0) }
     // Order the physical LB/RB buttons (and their on-screen badges) actually cycle through — matches the
     // left-to-right order of the tab labels themselves, so RB always lands on the tab visually to the right.
     val tabOrder = remember { listOf(GameSpaceTab.LIBRARY, GameSpaceTab.SUPER_BASE, GameSpaceTab.FAVORITES) }
@@ -280,10 +281,11 @@ fun QboostGameSpaceScreen(
         }
     }
 
+    val qboostColors = LocalQboostColors.current
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(CyberDarkBg)
+            .background(qboostColors.background)
     ) {
         // The selected game's library art is the background (blurred + darkened, like a console UI)
         GameSpaceBackground(game = selectedGame)
@@ -353,7 +355,7 @@ fun QboostGameSpaceScreen(
                     ) {
                         LibraryViewToggle(
                             isGrid = libraryViewMode == 1,
-                            onToggle = { libraryViewMode = if (libraryViewMode == 0) 1 else 0 }
+                            onToggle = { onLibraryViewModeChange(if (libraryViewMode == 0) 1 else 0) }
                         )
                     }
                 }
@@ -385,6 +387,7 @@ fun QboostGameSpaceScreen(
                                 selectedGame = selectedGame,
                                 onSelectGame = onSelectGame,
                                 onStartGame = onStartGame,
+                                onViewDetails = { onViewDetails(selectedGame) },
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -413,6 +416,7 @@ fun QboostGameSpaceScreen(
                                 selectedGame = selectedGame,
                                 onSelectGame = onSelectGame,
                                 onStartGame = onStartGame,
+                                onViewDetails = { onViewDetails(selectedGame) },
                                 emptyMessage = tr("no_favorite_games"),
                                 modifier = Modifier.fillMaxSize()
                             )
@@ -930,9 +934,10 @@ private fun PadBadge(text: String, onClick: () -> Unit) {
 
 @Composable
 private fun TabLabel(text: String, selected: Boolean, tag: String, onClick: () -> Unit) {
+    val colors = LocalQboostColors.current
     Text(
         text = text,
-        color = if (selected) TextWhite else TextGray,
+        color = if (selected) colors.textPrimary else colors.textSecondary,
         fontSize = 16.sp,
         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
         modifier = Modifier
@@ -1082,6 +1087,7 @@ private fun LibraryGrid(
     selectedGame: GameItem,
     onSelectGame: (GameItem) -> Unit,
     onStartGame: (GameItem) -> Unit,
+    onViewDetails: (GameItem) -> Unit = {},
     emptyMessage: String? = null,
     modifier: Modifier = Modifier
 ) {
@@ -1091,59 +1097,97 @@ private fun LibraryGrid(
         }
         return
     }
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(6),
-        modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        gridItems(visibleGames, key = { it.id }) { game ->
-            val isSelected = game.id == selectedGame.id
-            val art = LibraryArt.forGameGrid(game) ?: LibraryArt.forGame(game)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .qClickable {
-                        if (isSelected) onStartGame(game) else onSelectGame(game)
-                    }
-            ) {
-                Box(
+    Box(modifier = modifier) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(6),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            gridItems(visibleGames, key = { it.id }) { game ->
+                val isSelected = game.id == selectedGame.id
+                val art = LibraryArt.forGameGrid(game) ?: LibraryArt.forGame(game)
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(2f / 3f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFF1B2438))
-                        .selectionOutline(enabled = isSelected, cornerRadius = 10.dp, strokeWidth = 2.dp)
+                        .qClickable {
+                            if (isSelected) onStartGame(game) else onSelectGame(game)
+                        }
                 ) {
-                    if (art != null) {
-                        Image(
-                            painter = painterResource(id = art),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = game.initials,
-                                color = TextWhite,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(2f / 3f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFF1B2438))
+                            .selectionOutline(enabled = isSelected, cornerRadius = 10.dp, strokeWidth = 2.dp)
+                    ) {
+                        if (art != null) {
+                            Image(
+                                painter = painterResource(id = art),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
                             )
+                        } else {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = game.initials,
+                                    color = TextWhite,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        if (!game.isInstalled) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(4.dp)
+                                    .size(18.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0x99000000)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CloudDownload,
+                                    contentDescription = "Not installed",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(11.dp)
+                                )
+                            }
                         }
                     }
+                    Text(
+                        text = game.name,
+                        color = if (isSelected) TextWhite else TextGray,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
                 }
-                Text(
-                    text = game.name,
-                    color = if (isSelected) TextWhite else TextGray,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
             }
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 16.dp, bottom = 10.dp)
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(Color(0xCC1B2438))
+                .qClickable { onViewDetails(selectedGame) },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = tr("view_details"),
+                tint = TextWhite,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }

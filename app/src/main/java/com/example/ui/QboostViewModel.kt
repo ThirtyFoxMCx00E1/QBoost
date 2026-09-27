@@ -75,6 +75,15 @@ class QboostViewModel(application: Application) : AndroidViewModel(application) 
     private val _currentScreen = MutableStateFlow(AppScreen.LOBBY)
     val currentScreen: StateFlow<AppScreen> = _currentScreen.asStateFlow()
 
+    // Carousel (0) vs grid (1) library view. Kept here, not as local Compose state, so it survives
+    // navigating to the Details screen and back instead of resetting to carousel every time.
+    private val _libraryViewMode = MutableStateFlow(0)
+    val libraryViewMode: StateFlow<Int> = _libraryViewMode.asStateFlow()
+
+    fun setLibraryViewMode(mode: Int) {
+        _libraryViewMode.value = mode
+    }
+
     private val _isVibrationEnabled = MutableStateFlow(repository.isVibrationEnabled())
     val isVibrationEnabled: StateFlow<Boolean> = _isVibrationEnabled.asStateFlow()
 
@@ -249,7 +258,7 @@ class QboostViewModel(application: Application) : AndroidViewModel(application) 
                 startSystemOverlayService(game.name, game.packageName, applySaturation = true)
             }
 
-            _launchToast.value = "QBOOST v10.012.02: Turbo Boosted! Launching ${game.name}..."
+            _launchToast.value = "QBOOST v10.013.01: Turbo Boosted! Launching ${game.name}..."
             app.startActivity(launchIntent)
             musicManager.pause()
         }
@@ -337,6 +346,27 @@ class QboostViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun setHandleOpacity(opacity: Float) = updateSettings { it.copy(handleOpacity = opacity.coerceIn(0f, 1f)) }
+    fun setHandleOutsideEdge(outside: Boolean) = updateSettings { it.copy(handleOutsideEdge = outside) }
+    fun setThemeMode(mode: String) = updateSettings { it.copy(themeMode = mode) }
+    fun applyCustomTheme(background: Int, accent: Int, text: Int, opacity: Float) = updateSettings {
+        it.copy(
+            themeMode = com.example.ui.theme.ThemeMode.CUSTOM,
+            customBackground = background,
+            customAccent = accent,
+            customText = text,
+            customOpacity = opacity.coerceIn(0.4f, 1f)
+        )
+    }
+    fun resetThemeToDefault() = updateSettings {
+        val defaults = AppSettings()
+        it.copy(
+            themeMode = defaults.themeMode,
+            customBackground = defaults.customBackground,
+            customAccent = defaults.customAccent,
+            customText = defaults.customText,
+            customOpacity = defaults.customOpacity
+        )
+    }
 
     fun setPanelOpacity(opacity: Float) = updateSettings { it.copy(panelOpacity = opacity.coerceIn(0.3f, 1f)) }
 
