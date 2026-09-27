@@ -1,0 +1,6 @@
+{
+  "name": "Qboost",
+  "description": "Qboost v8.8 - Game Space launcher & floating game assistant with a console-style blue game library (cover art tiles and blurred game backgrounds), game details (trailer, gallery, Google Play rating), in-game panel with floating multitasking apps, Upscaler and Frame gen, real-time system monitor (FPS, CPU, GPU, RAM, temperature), real screen saturation slider, settings with 13 languages, controller support, click sounds, and ongoing notification.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

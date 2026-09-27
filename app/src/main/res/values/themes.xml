@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- #1C1C1E matches SplashScreen.kt's SplashGrey: the system's own pre-draw background, the splash,
+         and the fade into the games menu all read as one continuous grey with no color flash between them. -->
+    <style name="Theme.MyApplication" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">#FF1C1C1E</item>
+    </style>
+
+    <!-- MainActivity's real launch theme (see AndroidManifest.xml). Without this, the OS (and some OEM
+         skins, e.g. ColorOS on Realme devices, even more aggressively) draws its own default cold-start
+         frame first: the bare launcher icon centered on a plain background, status bar visible, before our
+         Activity has drawn anything — that's the "icon / clock / battery" flash some devices show ahead of
+         the real splash. Taking over via androidx.core.splashscreen's Theme.SplashScreen replaces that with
+         our own icon on the same #1C1C1E grey as SplashScreen.kt, so the hand-off from system frame to our
+         animated splash is seamless instead of a visible swap. postSplashScreenTheme is what MainActivity
+         switches to right after (installSplashScreen() in onCreate is what ends it and makes that switch). -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FF1C1C1E</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/qboost_splash_glyph</item>
+        <item name="postSplashScreenTheme">@style/Theme.MyApplication</item>
+    </style>
+</resources>
