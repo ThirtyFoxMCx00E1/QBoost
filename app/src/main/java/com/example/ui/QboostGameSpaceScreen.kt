@@ -1108,18 +1108,17 @@ private fun LibraryGrid(
             gridItems(visibleGames, key = { it.id }) { game ->
                 val isSelected = game.id == selectedGame.id
                 val art = LibraryArt.forGameGrid(game) ?: LibraryArt.forGame(game)
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .qClickable {
-                            if (isSelected) onStartGame(game) else onSelectGame(game)
-                        }
-                ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(2f / 3f)
+                            // Clipped first, so the tap ripple is cropped to this exact rounded
+                            // shape instead of spilling into a plain rectangle over the caption below.
                             .clip(RoundedCornerShape(10.dp))
+                            .qClickable {
+                                if (isSelected) onStartGame(game) else onSelectGame(game)
+                            }
                             .background(Color(0xFF1B2438))
                             .selectionOutline(enabled = isSelected, cornerRadius = 10.dp, strokeWidth = 2.dp)
                     ) {
@@ -1139,6 +1138,25 @@ private fun LibraryGrid(
                                     fontWeight = FontWeight.Bold
                                 )
                             }
+                        }
+                        // Info badge, per tile - mirrors the download badge on the opposite corner,
+                        // instead of one floating "view details" button disconnected from any game.
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(4.dp)
+                                .size(18.dp)
+                                .clip(CircleShape)
+                                .background(Color(0x99000000))
+                                .qClickable { onViewDetails(game) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = tr("view_details"),
+                                tint = Color.White,
+                                modifier = Modifier.size(11.dp)
+                            )
                         }
                         if (!game.isInstalled) {
                             Box(
@@ -1170,24 +1188,6 @@ private fun LibraryGrid(
                     )
                 }
             }
-        }
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 16.dp, bottom = 10.dp)
-                .size(34.dp)
-                .clip(CircleShape)
-                .background(Color(0xCC1B2438))
-                .qClickable { onViewDetails(selectedGame) },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = tr("view_details"),
-                tint = TextWhite,
-                modifier = Modifier.size(18.dp)
-            )
         }
     }
 }

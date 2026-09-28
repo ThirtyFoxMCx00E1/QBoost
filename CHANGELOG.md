@@ -1,5 +1,15 @@
 # Changelog
 
+## v10.014.04 (versionCode 25)
+
+**Grid view fixes**
+- **View details icon:** it used to be one floating button pinned to the bottom-left of the whole grid, not
+  attached to any game. Every poster now has its own small info badge in the top-left corner (mirroring the
+  download badge in the top-right), and it opens the details of *that* game.
+- **Tap highlight:** the white tap splash used to cover a plain rectangle (poster plus the name under it),
+  which is why it looked bigger than the tile. The tap area is now the poster only and is clipped to its
+  rounded corners, the same way the carousel tiles already worked.
+
 ## v10.013.01 (versionCode 24)
 
 **Panel handle**: no longer drags - it's now fixed to the top-left corner. Added a Settings > Panel
