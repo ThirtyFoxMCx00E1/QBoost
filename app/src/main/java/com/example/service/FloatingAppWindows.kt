@@ -34,7 +34,7 @@ data class FloatingApp(
     val desktopSite: Boolean,
     val packages: List<String>,
     /** The dock icon, bundled with Qboost so it never depends on the real app being installed. */
-    @DrawableRes val iconRes: Int
+    @param:DrawableRes val iconRes: Int
 )
 
 object FloatingApps {

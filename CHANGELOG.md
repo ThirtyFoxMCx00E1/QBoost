@@ -2,6 +2,8 @@
 
 ## v10.015.025 (versionCode 26)
 
+_Build warning fix: `FloatingApp.iconRes` now uses `@param:DrawableRes`, which is what Kotlin was asking for ("annotation is currently applied to the value parameter only, but in the future it will also be applied to field"). No behavior change; the warning is gone._
+
 **Light mode now actually looks like a light theme.** Settings was painting its title, back arrow, rail
 labels, rows, dividers, switches, sliders, chips and dialogs in fixed dark-theme colors, so on the light
 backdrop the "< Settings" heading and most text were near-invisible. Every one of those now follows the
