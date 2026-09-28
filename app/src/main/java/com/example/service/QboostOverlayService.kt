@@ -625,27 +625,12 @@ class QboostOverlayService : Service() {
 
     private fun dockIcon(app: FloatingApp): View {
         val installedPackage = app.packages.firstOrNull { packageManager.getLaunchIntentForPackage(it) != null }
-        val realIcon = installedPackage?.let {
-            try {
-                packageManager.getApplicationIcon(it)
-            } catch (_: Exception) {
-                null
-            }
-        }
-        val icon: View
-        if (realIcon != null) {
-            val image = ImageView(this)
-            image.setImageDrawable(realIcon)
-            image.scaleType = ImageView.ScaleType.FIT_CENTER
-            icon = image
-        } else {
-            // Not installed, or its icon couldn't be loaded: a plain gradient tile with the first
-            // letter instead of a blank/missing icon (the web version still works either way)
-            val letter = label(app.title.take(1).uppercase(Locale.getDefault()), 18f, Color.WHITE, bold = true)
-            letter.gravity = Gravity.CENTER
-            letter.background = gradient(Color.parseColor("#FF2A3552"), Color.parseColor("#FF1B2438"), radiusDp = 13)
-            icon = letter
-        }
+        // The bundled icon is always used, so the dock looks the same whether or not the real app is
+        // installed (long-press still opens the real app when it is).
+        val image = ImageView(this)
+        image.setImageResource(app.iconRes)
+        image.scaleType = ImageView.ScaleType.CENTER_CROP
+        val icon: View = image
         icon.clipToOutline = true
         icon.outlineProvider = object : ViewOutlineProvider() {
             override fun getOutline(view: View, outline: Outline) {

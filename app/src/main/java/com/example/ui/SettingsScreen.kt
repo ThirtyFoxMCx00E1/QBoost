@@ -57,10 +57,7 @@ import com.example.i18n.tr
 import com.example.settings.AppSettings
 import com.example.ui.components.qClickable
 import com.example.ui.theme.LocalQboostColors
-import com.example.ui.theme.QboostBlue
 import com.example.ui.theme.QboostBlueGlow
-import com.example.ui.theme.TextGray
-import com.example.ui.theme.TextWhite
 import com.example.ui.theme.ThemeMode
 import com.example.ui.theme.ThemeSwatches
 import kotlin.math.roundToInt
@@ -155,14 +152,14 @@ fun SettingsScreen(
                     Icon(
                         imageVector = Icons.Default.ChevronLeft,
                         contentDescription = tr("settings"),
-                        tint = TextWhite,
+                        tint = qboostColors.textPrimary,
                         modifier = Modifier.size(28.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = tr("settings"),
-                    color = TextWhite,
+                    color = qboostColors.textPrimary,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
@@ -182,7 +179,7 @@ fun SettingsScreen(
                         .width(220.dp)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(24.dp))
-                        .background(Color(0x66121C30))
+                        .background(qboostColors.panel)
                         .verticalScroll(rememberScrollState())
                         .padding(10.dp)
                 ) {
@@ -212,7 +209,7 @@ fun SettingsScreen(
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(24.dp))
-                        .background(Color(0x66121C30))
+                        .background(qboostColors.panel)
                         .verticalScroll(rememberScrollState())
                         .padding(vertical = 6.dp)
                 ) {
@@ -365,12 +362,12 @@ fun SettingsScreen(
 
                             Text(
                                 text = tr("theme_mode"),
-                                color = TextGray,
+                                color = qboostColors.textSecondary,
                                 fontSize = 12.sp,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp)
                             )
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 listOf(
@@ -384,14 +381,14 @@ fun SettingsScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(10.dp))
-                                            .background(if (isSelected) QboostBlue else Color(0xFF1B2438))
+                                            .background(if (isSelected) qboostColors.accent else qboostColors.chip)
                                             .qClickable { onThemeModeChange(mode) }
                                             .padding(vertical = 10.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = label,
-                                            color = TextWhite,
+                                            color = if (isSelected) Color.White else qboostColors.textPrimary,
                                             fontSize = 12.sp,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                             maxLines = 1,
@@ -405,9 +402,9 @@ fun SettingsScreen(
                                 RowDivider()
                                 Text(
                                     text = tr("theme_background"),
-                                    color = TextGray,
+                                    color = qboostColors.textSecondary,
                                     fontSize = 12.sp,
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp)
                                 )
                                 ColorSwatchRow(
                                     swatches = ThemeSwatches.backgrounds,
@@ -418,9 +415,9 @@ fun SettingsScreen(
                                 RowDivider()
                                 Text(
                                     text = tr("theme_accent"),
-                                    color = TextGray,
+                                    color = qboostColors.textSecondary,
                                     fontSize = 12.sp,
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp)
                                 )
                                 ColorSwatchRow(
                                     swatches = ThemeSwatches.accents,
@@ -431,9 +428,9 @@ fun SettingsScreen(
                                 RowDivider()
                                 Text(
                                     text = tr("theme_text_color"),
-                                    color = TextGray,
+                                    color = qboostColors.textSecondary,
                                     fontSize = 12.sp,
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp)
                                 )
                                 ColorSwatchRow(
                                     swatches = ThemeSwatches.text,
@@ -456,14 +453,14 @@ fun SettingsScreen(
 
                                 RowDivider()
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(10.dp))
-                                            .background(QboostBlue)
+                                            .background(qboostColors.accent)
                                             .qClickable {
                                                 onApplyCustomTheme(
                                                     pendingBackground.toArgb(),
@@ -475,18 +472,18 @@ fun SettingsScreen(
                                             .padding(vertical = 12.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(tr("apply"), color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                        Text(tr("apply"), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                     }
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(10.dp))
-                                            .background(Color(0xFF1B2438))
+                                            .background(qboostColors.chip)
                                             .qClickable { onResetTheme() }
                                             .padding(vertical = 12.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(tr("reset_default"), color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                        Text(tr("reset_default"), color = qboostColors.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             } else {
@@ -580,12 +577,13 @@ private fun PackageInfo.buildNumber(): Long =
 
 @Composable
 private fun RailItem(label: String, selected: Boolean, tag: String, onClick: () -> Unit) {
+    val colors = LocalQboostColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(46.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(if (selected) Color(0x26FFFFFF) else Color.Transparent)
+            .background(if (selected) colors.selectedRow else Color.Transparent)
             .qClickable(onClick = onClick)
             .padding(horizontal = 12.dp)
             .testTag(tag),
@@ -596,12 +594,12 @@ private fun RailItem(label: String, selected: Boolean, tag: String, onClick: () 
                 .width(3.dp)
                 .height(18.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(if (selected) Color.White else Color.Transparent)
+                .background(if (selected) (if (colors.isLight) colors.accent else Color.White) else Color.Transparent)
         )
         Spacer(modifier = Modifier.width(10.dp))
         Text(
             text = label,
-            color = if (selected) TextWhite else TextGray,
+            color = if (selected) colors.textPrimary else colors.textSecondary,
             fontSize = 15.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             maxLines = 1,
@@ -611,7 +609,7 @@ private fun RailItem(label: String, selected: Boolean, tag: String, onClick: () 
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = TextGray,
+            tint = colors.textSecondary,
             modifier = Modifier.size(18.dp)
         )
     }
@@ -625,6 +623,7 @@ private fun SettingRow(
     testTag: String = "",
     trailing: @Composable RowScope.() -> Unit
 ) {
+    val colors = LocalQboostColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -634,11 +633,11 @@ private fun SettingRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, color = TextWhite, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(text = title, color = colors.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             if (description != null) {
                 Text(
                     text = description,
-                    color = TextGray,
+                    color = colors.textSecondary,
                     fontSize = 11.sp,
                     lineHeight = 15.sp,
                     modifier = Modifier.padding(top = 2.dp)
@@ -652,12 +651,13 @@ private fun SettingRow(
 
 @Composable
 private fun RowDivider() {
+    val colors = LocalQboostColors.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .height(1.dp)
-            .background(Color(0x14FFFFFF))
+            .background(colors.divider)
     )
 }
 
@@ -665,7 +665,7 @@ private fun RowDivider() {
 private fun ValueText(text: String) {
     Text(
         text = text,
-        color = TextGray,
+        color = LocalQboostColors.current.textSecondary,
         fontSize = 12.sp,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
@@ -675,8 +675,9 @@ private fun ValueText(text: String) {
 
 @Composable
 private fun ColorSwatchRow(swatches: List<Color>, selected: Color, onSelect: (Color) -> Unit) {
+    val colors = LocalQboostColors.current
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         swatches.forEach { swatch ->
@@ -688,9 +689,9 @@ private fun ColorSwatchRow(swatches: List<Color>, selected: Color, onSelect: (Co
                     .background(swatch)
                     .then(
                         if (isSelected) {
-                            Modifier.border(2.dp, TextWhite, CircleShape)
+                            Modifier.border(2.dp, colors.textPrimary, CircleShape)
                         } else {
-                            Modifier.border(1.dp, Color(0x33FFFFFF), CircleShape)
+                            Modifier.border(1.dp, colors.textPrimary.copy(alpha = 0.25f), CircleShape)
                         }
                     )
                     .qClickable { onSelect(swatch) }
@@ -709,7 +710,7 @@ private fun ValueChevron(value: String) {
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = TextGray,
+            tint = LocalQboostColors.current.textSecondary,
             modifier = Modifier.size(20.dp)
         )
     }
@@ -717,15 +718,16 @@ private fun ValueChevron(value: String) {
 
 @Composable
 private fun SettingSwitch(checked: Boolean) {
+    val colors = LocalQboostColors.current
     Switch(
         checked = checked,
         onCheckedChange = null,
         colors = SwitchDefaults.colors(
             checkedThumbColor = Color.White,
-            checkedTrackColor = QboostBlue,
+            checkedTrackColor = colors.accent,
             checkedBorderColor = Color.Transparent,
-            uncheckedThumbColor = Color(0xFFB0B7C6),
-            uncheckedTrackColor = Color(0xFF2A3348),
+            uncheckedThumbColor = if (colors.isLight) Color.White else Color(0xFFB0B7C6),
+            uncheckedTrackColor = if (colors.isLight) Color(0xFFBFC8D6) else Color(0xFF2A3348),
             uncheckedBorderColor = Color.Transparent
         )
     )
@@ -738,6 +740,7 @@ private fun SettingSlider(
     onValueChange: (Float) -> Unit,
     tag: String
 ) {
+    val colors = LocalQboostColors.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         Slider(
             value = value.coerceIn(valueRange.start, valueRange.endInclusive),
@@ -745,8 +748,8 @@ private fun SettingSlider(
             valueRange = valueRange,
             colors = SliderDefaults.colors(
                 thumbColor = Color.White,
-                activeTrackColor = QboostBlue,
-                inactiveTrackColor = Color(0x33FFFFFF)
+                activeTrackColor = colors.accent,
+                inactiveTrackColor = colors.textPrimary.copy(alpha = 0.2f)
             ),
             modifier = Modifier
                 .width(170.dp)
@@ -755,7 +758,7 @@ private fun SettingSlider(
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "${(value * 100).roundToInt()}%",
-            color = QboostBlueGlow,
+            color = if (colors.isLight) colors.accent else QboostBlueGlow,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.width(40.dp)
@@ -771,6 +774,7 @@ private fun ChoiceDialog(
     onSelect: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val colors = LocalQboostColors.current
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -779,12 +783,12 @@ private fun ChoiceDialog(
             modifier = Modifier
                 .width(340.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFF131C2E))
+                .background(if (colors.isLight) colors.surface else Color(0xFF131C2E))
                 .padding(vertical = 14.dp)
         ) {
             Text(
                 text = title,
-                color = TextWhite,
+                color = colors.textPrimary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 22.dp, vertical = 6.dp)
@@ -808,7 +812,7 @@ private fun ChoiceDialog(
                     ) {
                         Text(
                             text = label,
-                            color = if (isSelected) TextWhite else TextGray,
+                            color = if (isSelected) colors.textPrimary else colors.textSecondary,
                             fontSize = 14.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             modifier = Modifier.weight(1f)
@@ -817,7 +821,7 @@ private fun ChoiceDialog(
                             modifier = Modifier
                                 .size(10.dp)
                                 .clip(CircleShape)
-                                .background(if (isSelected) QboostBlue else Color.Transparent)
+                                .background(if (isSelected) colors.accent else Color.Transparent)
                         )
                     }
                 }

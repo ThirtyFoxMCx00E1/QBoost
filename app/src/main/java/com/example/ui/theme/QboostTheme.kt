@@ -2,6 +2,7 @@ package com.example.ui.theme
 
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import com.example.settings.AppSettings
 
 /**
@@ -14,7 +15,19 @@ data class QboostColors(
     val surface: Color,
     val accent: Color,
     val textPrimary: Color,
-    val textSecondary: Color
+    val textSecondary: Color,
+    /** True when [background] is light, so screens can swap dark-only scrims/overlays for light ones. */
+    val isLight: Boolean = false,
+    /** Settings cards / big rounded containers sitting on [background]. */
+    val panel: Color = Color(0x66121C30),
+    /** Unselected chips and secondary buttons. */
+    val chip: Color = Color(0xFF1B2438),
+    /** Hairline dividers between rows. */
+    val divider: Color = Color(0x14FFFFFF),
+    /** The highlighted row in a list (e.g. the current Settings category). */
+    val selectedRow: Color = Color(0x26FFFFFF),
+    /** Frosted "glass" fill for small buttons/fields that sit right on the background. */
+    val glass: Color = Color(0x33FFFFFF)
 )
 
 object ThemeMode {
@@ -43,13 +56,22 @@ val DarkQboostColors = QboostColors(
     textSecondary = Color(0xFFA0A0A0)
 )
 
-/** A light mode - background and text flip; the blue accent stays for brand consistency. */
+/**
+ * A real light mode, modeled on the phone's own light quick-settings look: a cool blue-grey backdrop,
+ * pure-white rounded cards, near-black text, and one vivid blue accent.
+ */
 val LightQboostColors = QboostColors(
-    background = Color(0xFFF5F7FA),
+    background = Color(0xFFE5EBF3),
     surface = Color(0xFFFFFFFF),
-    accent = QboostBlue,
-    textPrimary = Color(0xFF10141C),
-    textSecondary = Color(0xFF5A6472)
+    accent = Color(0xFF0066FF),
+    textPrimary = Color(0xFF0B0F14),
+    textSecondary = Color(0xFF6B7480),
+    isLight = true,
+    panel = Color(0xFFFFFFFF),
+    chip = Color(0xFFEEF2F8),
+    divider = Color(0x14000000),
+    selectedRow = Color(0x1F0066FF),
+    glass = Color(0x14000000)
 )
 
 /** Small, safe preset swatches for the Customize pickers - not a full color wheel, but enough real choice. */
@@ -71,21 +93,31 @@ object ThemeSwatches {
 fun resolveQboostColors(settings: AppSettings): QboostColors = when (settings.themeMode) {
     ThemeMode.DARK -> DarkQboostColors
     ThemeMode.LIGHT -> LightQboostColors
-    ThemeMode.CUSTOM -> QboostColors(
-        background = Color(settings.customBackground),
-        surface = Color(settings.customBackground).let { bg ->
-            // A slightly lighter card surface derived from the chosen background, so custom themes
-            // still have visible card/background contrast without asking for a second color.
-            Color(
-                red = (bg.red + 0.08f).coerceAtMost(1f),
-                green = (bg.green + 0.08f).coerceAtMost(1f),
-                blue = (bg.blue + 0.08f).coerceAtMost(1f)
-            )
-        },
-        accent = Color(settings.customAccent),
-        textPrimary = Color(settings.customText),
-        textSecondary = Color(settings.customText).copy(alpha = 0.6f)
-    )
+    ThemeMode.CUSTOM -> {
+        val bg = Color(settings.customBackground)
+        val light = bg.luminance() > 0.5f
+        val accent = Color(settings.customAccent)
+        // A slightly lighter card surface derived from the chosen background, so custom themes
+        // still have visible card/background contrast without asking for a second color.
+        val surface = Color(
+            red = (bg.red + 0.08f).coerceAtMost(1f),
+            green = (bg.green + 0.08f).coerceAtMost(1f),
+            blue = (bg.blue + 0.08f).coerceAtMost(1f)
+        )
+        QboostColors(
+            background = bg,
+            surface = surface,
+            accent = accent,
+            textPrimary = Color(settings.customText),
+            textSecondary = Color(settings.customText).copy(alpha = 0.6f),
+            isLight = light,
+            panel = if (light) Color(0xFFFFFFFF) else Color(0x66121C30),
+            chip = if (light) Color(0x0F000000) else Color(0x1FFFFFFF),
+            divider = if (light) Color(0x14000000) else Color(0x14FFFFFF),
+            selectedRow = accent.copy(alpha = 0.16f),
+            glass = if (light) Color(0x14000000) else Color(0x33FFFFFF)
+        )
+    }
     else -> DefaultQboostColors
 }
 

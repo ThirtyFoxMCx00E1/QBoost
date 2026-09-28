@@ -23,6 +23,8 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.DrawableRes
+import com.example.R
 
 /** An app that can float over the game as a small window. */
 data class FloatingApp(
@@ -30,26 +32,21 @@ data class FloatingApp(
     val title: String,
     val url: String,
     val desktopSite: Boolean,
-    val packages: List<String>
+    val packages: List<String>,
+    /** The dock icon, bundled with Qboost so it never depends on the real app being installed. */
+    @DrawableRes val iconRes: Int
 )
 
 object FloatingApps {
-    /** Order = order in the dock. */
+    /** Exactly these 7, in this order = order in the panel's dock. */
     val all = listOf(
-        FloatingApp("youtube", "YouTube", "https://m.youtube.com/", false, listOf("com.google.android.youtube")),
-        FloatingApp("spotify", "Spotify", "https://open.spotify.com/", true, listOf("com.spotify.music")),
-        FloatingApp("discord", "Discord", "https://discord.com/app", true, listOf("com.discord")),
-        FloatingApp("facebook", "Facebook", "https://m.facebook.com/", false, listOf("com.facebook.katana")),
-        FloatingApp("whatsapp", "WhatsApp", "https://web.whatsapp.com/", true, listOf("com.whatsapp")),
-        FloatingApp("tiktok", "TikTok", "https://www.tiktok.com/", false, listOf("com.zhiliaoapp.musically", "com.ss.android.ugc.trill")),
-        FloatingApp("instagram", "Instagram", "https://www.instagram.com/", false, listOf("com.instagram.android")),
-        FloatingApp("messenger", "Messenger", "https://www.messenger.com/", true, listOf("com.facebook.orca")),
-        FloatingApp("telegram", "Telegram", "https://web.telegram.org/a/", true, listOf("org.telegram.messenger")),
-        FloatingApp("x", "X", "https://x.com/", false, listOf("com.twitter.android")),
-        FloatingApp("twitch", "Twitch", "https://m.twitch.tv/", false, listOf("tv.twitch.android.app")),
-        FloatingApp("reddit", "Reddit", "https://www.reddit.com/", false, listOf("com.reddit.frontpage")),
-        FloatingApp("netflix", "Netflix", "https://www.netflix.com/", false, listOf("com.netflix.mediaclient")),
-        FloatingApp("browser", "Browser", "https://www.google.com/", false, listOf("com.android.chrome"))
+        FloatingApp("youtube", "YouTube", "https://m.youtube.com/", false, listOf("com.google.android.youtube"), R.drawable.fa_youtube),
+        FloatingApp("discord", "Discord", "https://discord.com/app", true, listOf("com.discord"), R.drawable.fa_discord),
+        FloatingApp("facebook", "Facebook", "https://m.facebook.com/", false, listOf("com.facebook.katana"), R.drawable.fa_facebook),
+        FloatingApp("instagram", "Instagram", "https://www.instagram.com/", false, listOf("com.instagram.android"), R.drawable.fa_instagram),
+        FloatingApp("tiktok", "TikTok", "https://www.tiktok.com/", false, listOf("com.zhiliaoapp.musically", "com.ss.android.ugc.trill"), R.drawable.fa_tiktok),
+        FloatingApp("telegram", "Telegram", "https://web.telegram.org/a/", true, listOf("org.telegram.messenger"), R.drawable.fa_telegram),
+        FloatingApp("browser", "Chrome", "https://www.google.com/", false, listOf("com.android.chrome"), R.drawable.fa_chrome)
     )
 }
 

@@ -1,5 +1,26 @@
 # Changelog
 
+## v10.015.025 (versionCode 26)
+
+**Light mode now actually looks like a light theme.** Settings was painting its title, back arrow, rail
+labels, rows, dividers, switches, sliders, chips and dialogs in fixed dark-theme colors, so on the light
+backdrop the "< Settings" heading and most text were near-invisible. Every one of those now follows the
+active theme, and the Light palette was rebuilt to match the phone's own light quick-settings look: cool
+blue-grey backdrop, pure-white rounded cards, near-black text and a single vivid blue accent. The Game
+Space screen follows too (top bar, clock, battery and Wi-Fi icons, search, the selected game's title and
+info line, buttons, the Search/Menu hints, and the scrim over the blurred game art). Custom themes with a
+light background get the same treatment automatically. The Appearance page also no longer clips the
+"Theme" label or runs its buttons flush against the panel edges. Dark and Default look the same as before.
+
+**Grid view: the info badge belongs to the picked game only.** Every tile used to show an info badge that
+all opened details for whichever game happened to be selected (so tapping the badge on one game opened
+Minecraft). Now only the selected tile shows it, and it opens that tile's own details.
+
+**Floating apps: exactly 7, with your icons.** The in-game panel's dock now holds YouTube, Discord,
+Facebook, Instagram, TikTok, Telegram and Chrome, in that order, using the icon images you supplied
+(bundled in the app, so they appear even when the real app isn't installed). Long-press still opens the
+real app when it is installed.
+
 ## v10.014.04 (versionCode 25)
 
 **Grid view fixes**

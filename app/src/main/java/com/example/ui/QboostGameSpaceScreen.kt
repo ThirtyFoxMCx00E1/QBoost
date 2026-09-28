@@ -289,12 +289,15 @@ fun QboostGameSpaceScreen(
     ) {
         // The selected game's library art is the background (blurred + darkened, like a console UI)
         GameSpaceBackground(game = selectedGame)
+        // Dark themes darken the blurred game art for contrast; the light theme washes it out with
+        // the light backdrop instead, so dark text on top stays readable.
+        val scrim = if (qboostColors.isLight) qboostColors.background else Color(0xFF070A12)
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.horizontalGradient(
-                        listOf(Color(0xEB070A12), Color(0x99070A12), Color(0x59070A12))
+                        listOf(scrim.copy(alpha = 0.92f), scrim.copy(alpha = 0.6f), scrim.copy(alpha = 0.35f))
                     )
                 )
         )
@@ -303,7 +306,7 @@ fun QboostGameSpaceScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0x8C070A12), Color.Transparent, Color(0xD9070A12))
+                        listOf(scrim.copy(alpha = 0.55f), Color.Transparent, scrim.copy(alpha = 0.85f))
                     )
                 )
         )
@@ -387,7 +390,7 @@ fun QboostGameSpaceScreen(
                                 selectedGame = selectedGame,
                                 onSelectGame = onSelectGame,
                                 onStartGame = onStartGame,
-                                onViewDetails = { onViewDetails(selectedGame) },
+                                onViewDetails = onViewDetails,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -416,7 +419,7 @@ fun QboostGameSpaceScreen(
                                 selectedGame = selectedGame,
                                 onSelectGame = onSelectGame,
                                 onStartGame = onStartGame,
-                                onViewDetails = { onViewDetails(selectedGame) },
+                                onViewDetails = onViewDetails,
                                 emptyMessage = tr("no_favorite_games"),
                                 modifier = Modifier.fillMaxSize()
                             )
@@ -748,7 +751,7 @@ private fun GameSpaceTopBar(
         stats.isCharging -> QboostNeonGreen
         stats.batteryPercent <= 20 -> Color(0xFFFF5252)
         stats.batteryPercent <= 40 -> Color(0xFFFFB300)
-        else -> TextWhite
+        else -> LocalQboostColors.current.textPrimary
     }
 
     Row(
@@ -853,7 +856,7 @@ private fun GameSpaceTopBar(
             }
             Text(
                 text = currentTime,
-                color = TextWhite,
+                color = LocalQboostColors.current.textPrimary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -870,7 +873,7 @@ private fun ControllerStatusIcon(isConnected: Boolean) {
         Icon(
             imageVector = Icons.Default.SportsEsports,
             contentDescription = tr("controller_status"),
-            tint = if (isConnected) TextWhite else TextGray,
+            tint = if (isConnected) LocalQboostColors.current.textPrimary else LocalQboostColors.current.textSecondary,
             modifier = Modifier.size(22.dp)
         )
         // Only shown once a real USB/OTG or Bluetooth controller is actually detected — no dot at all
@@ -893,7 +896,7 @@ private fun WifiStatusIcon(isOnline: Boolean) {
     Icon(
         imageVector = Icons.Default.Wifi,
         contentDescription = tr("network_status"),
-        tint = if (isOnline) TextWhite else TextGray.copy(alpha = 0.45f),
+        tint = if (isOnline) LocalQboostColors.current.textPrimary else LocalQboostColors.current.textSecondary.copy(alpha = 0.45f),
         modifier = Modifier.size(17.dp)
     )
 }
@@ -911,7 +914,7 @@ private fun TopIconButton(icon: ImageVector, description: String, tag: String, o
         Icon(
             imageVector = icon,
             contentDescription = description,
-            tint = TextWhite,
+            tint = LocalQboostColors.current.textPrimary,
             modifier = Modifier.size(22.dp)
         )
     }
@@ -989,19 +992,19 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
         value = query,
         onValueChange = onQueryChange,
         singleLine = true,
-        textStyle = TextStyle(color = TextWhite, fontSize = 13.sp),
+        textStyle = TextStyle(color = LocalQboostColors.current.textPrimary, fontSize = 13.sp),
         cursorBrush = SolidColor(QboostBlueGlow),
         modifier = Modifier
             .width(240.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x33FFFFFF))
+            .background(LocalQboostColors.current.glass)
             .padding(horizontal = 14.dp, vertical = 8.dp)
             .focusRequester(focusRequester)
             .testTag("game_search_field"),
         decorationBox = { innerTextField ->
             Box {
                 if (query.isEmpty()) {
-                    Text(text = tr("search_games"), color = TextGray, fontSize = 13.sp)
+                    Text(text = tr("search_games"), color = LocalQboostColors.current.textSecondary, fontSize = 13.sp)
                 }
                 innerTextField()
             }
@@ -1071,7 +1074,7 @@ private fun LibraryViewToggle(isGrid: Boolean, onToggle: () -> Unit, modifier: M
         Icon(
             imageVector = if (isGrid) Icons.Default.ViewCarousel else Icons.Default.GridView,
             contentDescription = tr("library_view_toggle"),
-            tint = TextWhite,
+            tint = LocalQboostColors.current.textPrimary,
             modifier = Modifier.size(18.dp)
         )
     }
@@ -1093,7 +1096,7 @@ private fun LibraryGrid(
 ) {
     if (visibleGames.isEmpty()) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            Text(text = emptyMessage ?: tr("no_games_match"), color = TextGray, fontSize = 13.sp)
+            Text(text = emptyMessage ?: tr("no_games_match"), color = LocalQboostColors.current.textSecondary, fontSize = 13.sp)
         }
         return
     }
@@ -1139,24 +1142,26 @@ private fun LibraryGrid(
                                 )
                             }
                         }
-                        // Info badge, per tile - mirrors the download badge on the opposite corner,
-                        // instead of one floating "view details" button disconnected from any game.
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(4.dp)
-                                .size(18.dp)
-                                .clip(CircleShape)
-                                .background(Color(0x99000000))
-                                .qClickable { onViewDetails(game) },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = tr("view_details"),
-                                tint = Color.White,
-                                modifier = Modifier.size(11.dp)
-                            )
+                        // Info badge: only on the tile that's picked, mirroring the download badge on the
+                        // opposite corner. Tapping a different tile moves it there.
+                        if (isSelected) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .padding(4.dp)
+                                    .size(18.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0x99000000))
+                                    .qClickable { onViewDetails(game) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = tr("view_details"),
+                                    tint = Color.White,
+                                    modifier = Modifier.size(11.dp)
+                                )
+                            }
                         }
                         if (!game.isInstalled) {
                             Box(
@@ -1179,7 +1184,7 @@ private fun LibraryGrid(
                     }
                     Text(
                         text = game.name,
-                        color = if (isSelected) TextWhite else TextGray,
+                        color = if (isSelected) LocalQboostColors.current.textPrimary else LocalQboostColors.current.textSecondary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
@@ -1238,7 +1243,7 @@ private fun LibraryContent(
 
             if (visibleGames.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = emptyMessage ?: tr("no_games_match"), color = TextGray, fontSize = 13.sp)
+                    Text(text = emptyMessage ?: tr("no_games_match"), color = LocalQboostColors.current.textSecondary, fontSize = 13.sp)
                 }
             } else {
                 LazyRow(
@@ -1284,13 +1289,13 @@ private fun LibraryContent(
                 Icon(
                     imageVector = if (selectedGame.isInstalled) Icons.Default.PhoneAndroid else Icons.Default.CloudDownload,
                     contentDescription = null,
-                    tint = TextGray,
+                    tint = LocalQboostColors.current.textSecondary,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = selectedGame.name,
-                    color = TextWhite,
+                    color = LocalQboostColors.current.textPrimary,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -1300,7 +1305,7 @@ private fun LibraryContent(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "${selectedGame.performanceMode.label()} • ${selectedGame.targetFps} ${tr("fps_cap")} • ",
-                    color = TextGray,
+                    color = LocalQboostColors.current.textSecondary,
                     fontSize = 11.sp,
                     maxLines = 1
                 )
@@ -1355,7 +1360,7 @@ private fun LibraryContent(
                     modifier = Modifier
                         .height(40.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0x33FFFFFF))
+                        .background(LocalQboostColors.current.glass)
                         .qClickable { onViewDetails() }
                         .padding(horizontal = 16.dp)
                         .testTag("view_details_button"),
@@ -1363,7 +1368,7 @@ private fun LibraryContent(
                 ) {
                     Text(
                         text = tr("view_details"),
-                        color = TextWhite,
+                        color = LocalQboostColors.current.textPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -1614,7 +1619,7 @@ private fun AddGameTile(tileHeight: Dp, onClick: () -> Unit) {
         modifier = Modifier
             .size(width = tileHeight, height = tileHeight)
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0x33FFFFFF))
+            .background(LocalQboostColors.current.glass)
             .qClickable(onClick = onClick)
             .testTag("add_game_launcher_button"),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -1623,11 +1628,11 @@ private fun AddGameTile(tileHeight: Dp, onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = "Add Game",
-            tint = TextWhite,
+            tint = LocalQboostColors.current.textPrimary,
             modifier = Modifier.size(28.dp)
         )
         Spacer(modifier = Modifier.height(6.dp))
-        Text(text = tr("add_game"), color = TextWhite, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = tr("add_game"), color = LocalQboostColors.current.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -1755,6 +1760,9 @@ private fun RoundToggle(
 /** "Y Search" / "≡ Menu" style hint. They are touch buttons. */
 @Composable
 private fun ButtonHint(letter: String, label: String, icon: ImageVector?, onClick: () -> Unit) {
+    val colors = LocalQboostColors.current
+    val hintFill = if (colors.isLight) colors.textPrimary else Color.White
+    val hintInk = if (colors.isLight) Color.White else Color(0xFF10141C)
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -1766,22 +1774,22 @@ private fun ButtonHint(letter: String, label: String, icon: ImageVector?, onClic
             modifier = Modifier
                 .size(22.dp)
                 .clip(CircleShape)
-                .background(Color.White),
+                .background(hintFill),
             contentAlignment = Alignment.Center
         ) {
             if (icon != null) {
                 Icon(
                     imageVector = icon,
                     contentDescription = label,
-                    tint = Color(0xFF10141C),
+                    tint = hintInk,
                     modifier = Modifier.size(14.dp)
                 )
             } else {
-                Text(text = letter, color = Color(0xFF10141C), fontSize = 11.sp, fontWeight = FontWeight.Black)
+                Text(text = letter, color = hintInk, fontSize = 11.sp, fontWeight = FontWeight.Black)
             }
         }
         Spacer(modifier = Modifier.width(6.dp))
-        Text(text = label, color = TextWhite, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(text = label, color = colors.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
 
