@@ -95,8 +95,8 @@ no_games	No installed games found	No se encontraron juegos instalados	インス�
 no_apps	No supported apps installed	Sin apps compatibles instaladas	対応アプリがインストールされていません	Aucune application compatible installée	لا توجد تطبيقات مدعومة	지원되는 앱이 없습니다	未安装受支持的应用	Nenhum app compatível instalado	Keine unterstützten Apps installiert	Нет поддерживаемых приложений	कोई समर्थित ऐप इंस्टॉल नहीं	Tidak ada aplikasi yang didukung	Desteklenen uygulama yok
 upscaler	Upscaler	Escalador	アップスケーラー	Upscaler	مُحسِّن الدقة	업스케일러	超分辨率	Upscaler	Upscaler	Апскейлер	अपस्केलर	Upscaler	Upscaler
 frame_gen	Frame gen	Gen. de fotogramas	フレーム生成	Génération d'images	توليد الإطارات	프레임 생성	帧生成	Geração de quadros	Frame-Generierung	Генерация кадров	फ्रेम जेन	Frame gen	Kare üretimi
-scaler_sharpness	Upscaler sharpness	Nitidez del escalador	アップスケーラーのシャープネス	Netteté de l'upscaler	حدة مُحسِّن الدقة	업스케일러 선명도	超分辨率锐度	Nitidez do upscaler	Upscaler-Schärfe	Резкость апскейлера	अपस्केलर शार्पनेस	Ketajaman upscaler	Upscaler keskinliği
-scaler_sharpness_desc	Sharpening strength of the Upscaler. It captures your game screen and needs Android 14 or newer	Fuerza de nitidez del escalador. Captura la pantalla del juego y requiere Android 14 o superior	アップスケーラーのシャープ化の強さ。ゲーム画面をキャプチャするためAndroid 14以降が必要です	Force de netteté de l'upscaler. Il capture l'écran du jeu et nécessite Android 14 ou plus	قوة الحدة في مُحسِّن الدقة. يلتقط شاشة اللعبة ويتطلب Android 14 أو أحدث	업스케일러의 선명도 강도입니다. 게임 화면을 캡처하며 Android 14 이상이 필요합니다	超分辨率的锐化强度。它会捕获游戏画面，需要 Android 14 或更高版本	Intensidade de nitidez do upscaler. Captura a tela do jogo e exige Android 14 ou mais recente	Schärfestärke des Upscalers. Er nimmt den Spielbildschirm auf und braucht Android 14 oder neuer	Сила резкости апскейлера. Он захватывает экран игры и требует Android 14 или новее	अपस्केलर की शार्पनिंग ताकत। यह गेम स्क्रीन कैप्चर करता है और Android 14 या नया चाहिए	Kekuatan penajaman upscaler. Menangkap layar game dan butuh Android 14 atau lebih baru	Upscaler'ın keskinleştirme gücü. Oyun ekranını yakalar ve Android 14 veya üstü gerekir
+scaler_sharpness	Scaler sharpness	Nitidez del escalador	アップスケーラーのシャープネス	Netteté de l'upscaler	حدة مُحسِّن الدقة	업스케일러 선명도	超分辨率锐度	Nitidez do upscaler	Upscaler-Schärfe	Резкость апскейлера	अपस्केलर शार्पनेस	Ketajaman upscaler	Upscaler keskinliği
+scaler_sharpness_desc	Sharpening strength of the Scaler. It captures your game screen and needs Android 14 or newer	Fuerza de nitidez del escalador. Captura la pantalla del juego y requiere Android 14 o superior	アップスケーラーのシャープ化の強さ。ゲーム画面をキャプチャするためAndroid 14以降が必要です	Force de netteté de l'upscaler. Il capture l'écran du jeu et nécessite Android 14 ou plus	قوة الحدة في مُحسِّن الدقة. يلتقط شاشة اللعبة ويتطلب Android 14 أو أحدث	업스케일러의 선명도 강도입니다. 게임 화면을 캡처하며 Android 14 이상이 필요합니다	超分辨率的锐化强度。它会捕获游戏画面，需要 Android 14 或更高版本	Intensidade de nitidez do upscaler. Captura a tela do jogo e exige Android 14 ou mais recente	Schärfestärke des Upscalers. Er nimmt den Spielbildschirm auf und braucht Android 14 oder neuer	Сила резкости апскейлера. Он захватывает экран игры и требует Android 14 или новее	अपस्केलर की शार्पनिंग ताकत। यह गेम स्क्रीन कैप्चर करता है और Android 14 या नया चाहिए	Kekuatan penajaman upscaler. Menangkap layar game dan butuh Android 14 atau lebih baru	Upscaler'ın keskinleştirme gücü. Oyun ekranını yakalar ve Android 14 veya üstü gerekir
 scaler_need_android14	Upscaler and Frame gen need Android 14 or newer	El escalador y la generación de fotogramas requieren Android 14 o superior	アップスケーラーとフレーム生成にはAndroid 14以降が必要です	L'upscaler et la génération d'images nécessitent Android 14 ou plus	يتطلب مُحسِّن الدقة وتوليد الإطارات Android 14 أو أحدث	업스케일러와 프레임 생성에는 Android 14 이상이 필요합니다	超分辨率和帧生成需要 Android 14 或更高版本	Upscaler e geração de quadros exigem Android 14 ou mais recente	Upscaler und Frame-Generierung brauchen Android 14 oder neuer	Апскейлер и генерация кадров требуют Android 14 или новее	अपस्केलर और फ्रेम जेन के लिए Android 14 या नया चाहिए	Upscaler dan Frame gen butuh Android 14 atau lebih baru	Upscaler ve kare üretimi için Android 14 veya üstü gerekir
 scaler_pick_app	Choose “A single app” and pick your game	Elige «Una sola app» y selecciona tu juego	「1つのアプリ」を選んでゲームを選択してください	Choisissez « Une seule appli » puis votre jeu	اختر «تطبيق واحد» ثم لعبتك	‘단일 앱’을 선택하고 게임을 고르세요	请选择“单个应用”并选择你的游戏	Escolha “Um único app” e selecione seu jogo	Wähle „Eine einzelne App“ und dein Spiel	Выберите «Одно приложение» и свою игру	“एक ऐप” चुनें और अपना गेम चुनें	Pilih “Satu aplikasi” lalu pilih game Anda	“Tek bir uygulama”yı seçip oyununuzu seçin
 scaler_failed	Scaler could not start	No se pudo iniciar el escalador	スケーラーを開始できませんでした	Impossible de démarrer le scaler	تعذر تشغيل المُحسِّن	스케일러를 시작할 수 없습니다	无法启动缩放器	Não foi possível iniciar o scaler	Scaler konnte nicht gestartet werden	Не удалось запустить скейлер	स्केलर शुरू नहीं हो सका	Scaler tidak dapat dimulai	Ölçekleyici başlatılamadı
@@ -154,3 +154,19 @@ theme_opacity_desc	How see-through cards and panels are in your custom theme
 theme_reset_desc	Switch back to Qboost's default look												
 apply	Apply												
 reset_default	Reset to Default												
+scaler	Scaler	Scaler	Scaler	Scaler	Scaler	Scaler	Scaler	Scaler	Scaler	Scaler	Scaler	Scaler	Scaler
+scaler_mode_upscale	Upscale												
+scaler_mode_framegen	Frame gen	Gen. de fotogramas	フレーム生成	Génération d'images	توليد الإطارات	프레임 생성	帧生成	Geração de quadros	Frame-Generierung	Генерация кадров	फ्रेम जेन	Frame gen	Kare üretimi
+scaler_mode_both	Both												
+scaler_quality	Capture quality												
+scaler_q_auto	Auto	Automático	自動	Auto	تلقائي	자동	自动	Automático	Automatisch	Авто	ऑटो	Otomatis	Otomatik
+scaler_q_max	Max												
+scaler_q_balanced	Balanced	Equilibrado	バランス	Équilibré	متوازن	균형	均衡	Equilibrado	Ausgewogen	Баланс	संतुलित	Seimbang	Dengeli
+scaler_q_fast	Fast												
+scaler_quality_next	Quality applies at next start												
+scaler_start	Start Scaler												
+scaler_stop	Stop Scaler												
+scaler_running	Running												
+scaler_off	Off												
+scaler_engine	Built-in engine												
+scaler_capture	capture												

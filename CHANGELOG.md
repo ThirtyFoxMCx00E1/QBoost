@@ -1,5 +1,32 @@
 # Changelog
 
+## v10.161.24 (versionCode 27)
+
+**One "Scaler" tile (Upscaler + Frame gen merged).** The two tiles in the in-game panel are now a single
+**Scaler** tile. It opens a small card with *Upscale / Frame gen / Both*, *Capture quality* (Auto / Max /
+Balanced / Fast), a line describing your real hardware, and Start/Stop. Switching mode while it runs applies
+immediately; quality applies at the next start.
+
+**Tuned to the real hardware (new native library, built with your NDK r30).** `libqboost_hw.so` (plain C,
+about 10 KB, committed for **arm64-v8a, armeabi-v7a, x86 and x86_64**, 16 KB-page aligned) reads the CPU cores
+and clocks, the RAM and, through Vulkan, the actual GPU with its compute / AHardwareBuffer / subgroup
+capabilities. From that Qboost picks a tier (Low / Mid / High). **Auto** capture quality uses it: High captures at
+full size, Mid at 75%, Low at 60%, then the frame is scaled back up to the screen and sharpened. That is a real
+saving on weak GPUs, and it is the "upscale" in Scaler. The app does not depend on the library (without it the
+tier is estimated from RAM), and a crash guard permanently skips Vulkan probing if a driver ever kills the probe.
+Rebuild with `native/build-native.sh`. Verified: compiled warning-free for all four ABIs, only `libc`/`libdl`
+dependencies, and the probe logic was run against a fake Vulkan driver under ASan/UBSan.
+
+**About the open-source projects you uploaded: not integrated this time, and why** (details and licenses in
+`docs/SCALER_SOURCES.md`). Arm ASR is a temporal upscaler that needs game-engine motion vectors (a screen capture
+has none) and the zip has no source. The LSFG-Android and lsfg-vk-android zips have empty submodules, their
+frame generation needs your own `Lossless.dll` (paid Lossless Scaling) and targets arm64/x86_64 + Adreno 7xx-class
+GPUs, and the Android app is GPL-3. OpenFG is proprietary ("all rights reserved", root only). RealSR-NCNN is an
+offline image upscaler, far too slow for game frames. Bannerlator runs frame gen inside its own Wine process.
+
+Also: Settings > Display "Upscaler sharpness" is now "Scaler sharpness"; AMD FidelityFX CAS is credited in
+`docs/SCALER_SOURCES.md`.
+
 ## v10.015.025 (versionCode 26)
 
 _Build warning fix: `FloatingApp.iconRes` now uses `@param:DrawableRes`, which is what Kotlin was asking for ("annotation is currently applied to the value parameter only, but in the future it will also be applied to field"). No behavior change; the warning is gone._

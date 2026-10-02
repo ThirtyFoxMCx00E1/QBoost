@@ -29,6 +29,8 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.example.R
+import com.example.hardware.HardwareProbe
+import com.example.hardware.ScalerTuning
 import com.example.i18n.I18n
 import com.example.settings.SettingsStore
 
@@ -79,6 +81,9 @@ class ScalerService : Service() {
     private var overlayRoot: FrameLayout? = null
     private var overlayParams: WindowManager.LayoutParams? = null
     private var firstFrameShown = false
+
+    /** Fraction of the screen resolution that is captured (1.0 = full). Below 1.0 the result is scaled back up. */
+    private var captureScale = 1.0f
     private var contentVisible = true
     private var stopping = false
     private var language = "en"
@@ -225,7 +230,16 @@ class ScalerService : Service() {
 
     private fun onOverlaySurface(surface: Surface, width: Int, height: Int, dpi: Int) {
         if (renderer != null || stopping) return
-        val r = ScalerRenderer(surface, width, height, width, height, object : ScalerRenderer.Listener {
+
+        // Real-hardware tuning: the capture size follows the Quality setting (Auto = by the phone's tier).
+        // Capturing below full size cuts the GPU work of the whole pipeline; the frame is then scaled back
+        // up to the screen and sharpened, which is the "upscale" half of the Scaler.
+        val tier = HardwareProbe.peek(this).tier
+        captureScale = ScalerTuning.scaleFor(SettingsStore.scalerQuality(this), tier)
+        val inWidth = ScalerTuning.scaledSize(width, captureScale)
+        val inHeight = ScalerTuning.scaledSize(height, captureScale)
+
+        val r = ScalerRenderer(surface, width, height, inWidth, inHeight, object : ScalerRenderer.Listener {
             override fun onFirstFrame() {
                 mainHandler.post {
                     firstFrameShown = true
@@ -241,7 +255,7 @@ class ScalerService : Service() {
                 }
             }
         })
-        r.upscalerOn = upscalerOn
+        r.upscalerOn = effectiveUpscaler(upscalerOn)
         r.frameGenOn = frameGenOn
         r.sharpness = SettingsStore.load(this).scalerSharpness
         renderer = r
@@ -255,8 +269,8 @@ class ScalerService : Service() {
         try {
             virtualDisplay = projection?.createVirtualDisplay(
                 "QboostScaler",
-                width,
-                height,
+                inWidth,
+                inHeight,
                 dpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                 input,
@@ -270,6 +284,9 @@ class ScalerService : Service() {
         }
         mainHandler.postDelayed(watchdog, 4000L)
     }
+
+    /** A reduced-size capture always gets the sharpening pass: that pass is what reconstructs the detail. */
+    private fun effectiveUpscaler(requested: Boolean): Boolean = requested || captureScale < 0.999f
 
     private fun setContentVisible(visible: Boolean) {
         contentVisible = visible
@@ -291,7 +308,7 @@ class ScalerService : Service() {
     fun applyConfig(upscaler: Boolean, frameGen: Boolean) {
         upscalerOn = upscaler
         frameGenOn = frameGen
-        renderer?.upscalerOn = upscaler
+        renderer?.upscalerOn = effectiveUpscaler(upscaler)
         renderer?.frameGenOn = frameGen
         if (!upscaler && !frameGen) {
             stopScaler()

@@ -1,6 +1,8 @@
 package com.example.settings
 
 import android.content.Context
+import com.example.hardware.ScalerMode
+import com.example.hardware.ScalerQuality
 import com.example.i18n.I18n
 
 /** User settings shown in the Qboost Settings screen. The in-game panel service reads the same values. */
@@ -39,6 +41,8 @@ object SettingsStore {
     const val KEY_SHOW_DOCK = "show_dock"
     const val KEY_SCALER_SHARPNESS = "scaler_sharpness"
     const val KEY_UPDATE_ALERTS = "update_alerts"
+    const val KEY_SCALER_MODE = "scaler_mode"
+    const val KEY_SCALER_QUALITY = "scaler_quality"
     const val KEY_THEME_MODE = "theme_mode"
     const val KEY_CUSTOM_BACKGROUND = "custom_background"
     const val KEY_CUSTOM_ACCENT = "custom_accent"
@@ -46,6 +50,25 @@ object SettingsStore {
     const val KEY_CUSTOM_OPACITY = "custom_opacity"
 
     fun prefsName(): String = PREFS
+
+    // ---- Scaler (the merged Upscaler + Frame gen) ----
+    fun scalerMode(context: Context): Int =
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getInt(KEY_SCALER_MODE, ScalerMode.BOTH).coerceIn(ScalerMode.UPSCALE, ScalerMode.BOTH)
+
+    fun setScalerMode(context: Context, mode: Int) {
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_SCALER_MODE, mode.coerceIn(ScalerMode.UPSCALE, ScalerMode.BOTH)).apply()
+    }
+
+    fun scalerQuality(context: Context): Int =
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getInt(KEY_SCALER_QUALITY, ScalerQuality.AUTO).coerceIn(ScalerQuality.AUTO, ScalerQuality.FAST)
+
+    fun setScalerQuality(context: Context, quality: Int) {
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_SCALER_QUALITY, quality.coerceIn(ScalerQuality.AUTO, ScalerQuality.FAST)).apply()
+    }
 
     fun load(context: Context): AppSettings {
         val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

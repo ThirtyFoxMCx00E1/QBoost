@@ -53,7 +53,11 @@ import com.example.audio.UiSounds
 import com.example.display.SaturationEngine
 import com.example.display.SaturationStore
 import com.example.hardware.DeviceTelemetry
+import com.example.hardware.HardwareProbe
+import com.example.hardware.HardwareProfile
 import com.example.hardware.RamBooster
+import com.example.hardware.ScalerMode
+import com.example.hardware.ScalerTuning
 import com.example.hardware.TelemetryFormat
 import com.example.i18n.I18n
 import com.example.model.PerformanceStats
@@ -143,8 +147,14 @@ class QboostOverlayService : Service() {
     private var currentPerformanceMode = 2
     private var monitorTile: LinearLayout? = null
     private var satTile: TextView? = null
-    private var upscalerTile: TextView? = null
-    private var frameGenTile: TextView? = null
+    // Scaler (the merged Upscaler + Frame gen)
+    private var scalerTile: TextView? = null
+    private var scalerCard: LinearLayout? = null
+    private var scalerStartButton: TextView? = null
+    private var scalerStatusText: TextView? = null
+    private var scalerHwText: TextView? = null
+    private val scalerModeChips = arrayOfNulls<TextView>(3)
+    private val scalerQualityChips = arrayOfNulls<TextView>(4)
     private var hapticsTile: TextView? = null
     private var rotationLockTile: TextView? = null
     private var dndTile: TextView? = null
@@ -796,22 +806,16 @@ class QboostOverlayService : Service() {
 
         // tools: 4 x 2, nothing else
         val sat = toolTile(s("saturation")) { toggleSaturationCard() }
-        val upscaler = toolTile(s("upscaler"), active = ScalerService.upscalerOn) {
-            toggleScaler(toggleUpscaler = true, toggleFrameGen = false)
-        }
-        val frameGen = toolTile(s("frame_gen"), active = ScalerService.frameGenOn) {
-            toggleScaler(toggleUpscaler = false, toggleFrameGen = true)
-        }
+        val scaler = toolTile(s("scaler"), active = ScalerService.isRunning) { toggleScalerCard() }
         val haptics = toolTile(s("tool_haptics"), active = isHapticsOn) { view ->
             isHapticsOn = !isHapticsOn
             styleTile(view as TextView, isHapticsOn)
             vibratePulse()
         }
         satTile = sat
-        upscalerTile = upscaler
-        frameGenTile = frameGen
+        scalerTile = scaler
         hapticsTile = haptics
-        column.addView(toolRow(sat, upscaler, frameGen, haptics))
+        column.addView(toolRow(sat, scaler, haptics))
         column.addView(
             toolRow(
                 toolTile(s("tool_wifi")) { openSystemScreen(Settings.ACTION_WIFI_SETTINGS) },
@@ -847,6 +851,7 @@ class QboostOverlayService : Service() {
         )
 
         column.addView(buildSaturationCard())
+        column.addView(buildScalerCard())
 
         val status = label("", 10f, C_GRAY)
         status.gravity = Gravity.CENTER
@@ -1243,14 +1248,14 @@ class QboostOverlayService : Service() {
     }
 
     /**
-     * A real screenshot needs MediaProjection consent, which Qboost only asks for when Upscaler/Frame
+     * A real screenshot needs MediaProjection consent, which Qboost only asks for when the Scaler
      * gen is turned on — reusing that instead of asking a second time for a whole separate feature.
      */
     private fun showScreenshotInfo() {
         val message = if (ScalerService.upscalerOn || ScalerService.frameGenOn) {
             "Screenshot capture from here is coming soon"
         } else {
-            "Turn on Upscaler or Frame gen first — Screenshot reuses that same screen-capture permission"
+            "Turn on Scaler first — Screenshot reuses that same screen-capture permission"
         }
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
@@ -1276,36 +1281,162 @@ class QboostOverlayService : Service() {
         }
     }
 
-    // ---------------- Upscaler / Frame gen ----------------
+    // ---------------- Scaler (upscale + frame gen in one) ----------------
 
-    private fun toggleScaler(toggleUpscaler: Boolean, toggleFrameGen: Boolean) {
+    /** A short selectable chip (same look as the tool tiles, just lower). */
+    private fun scalerChip(text: String, onClick: () -> Unit): TextView {
+        val chip = toolTile(text) { onClick() }
+        (chip.layoutParams as LinearLayout.LayoutParams).height = dp(34)
+        chip.textSize = 10.5f
+        return chip
+    }
+
+    private fun scalerChipRow(labels: List<String>, store: Array<TextView?>, onPick: (Int) -> Unit): LinearLayout {
+        val row = LinearLayout(this)
+        row.orientation = LinearLayout.HORIZONTAL
+        labels.forEachIndexed { index, text ->
+            val chip = scalerChip(text) { onPick(index) }
+            store[index] = chip
+            row.addView(chip)
+        }
+        return row
+    }
+
+    private fun buildScalerCard(): LinearLayout {
+        val card = LinearLayout(this)
+        card.orientation = LinearLayout.VERTICAL
+        card.visibility = View.GONE
+        card.background = gradient(Color.parseColor("#CC22304D"), Color.parseColor("#CC18233B"), radiusDp = 14)
+        card.setPadding(dp(12), dp(9), dp(12), dp(9))
+        val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        lp.topMargin = dp(6)
+        card.layoutParams = lp
+
+        val header = LinearLayout(this)
+        header.orientation = LinearLayout.HORIZONTAL
+        header.gravity = Gravity.CENTER_VERTICAL
+        val title = label(s("scaler"), 12f, C_CYAN, bold = true)
+        title.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        val state = label("", 11f, C_GRAY, bold = true)
+        scalerStatusText = state
+        header.addView(title)
+        header.addView(state)
+        card.addView(header)
+
+        card.addView(
+            scalerChipRow(
+                listOf(s("scaler_mode_upscale"), s("scaler_mode_framegen"), s("scaler_mode_both")),
+                scalerModeChips
+            ) { index -> onScalerMode(index) }
+        )
+
+        val qualityLabel = label(s("scaler_quality"), 10f, C_GRAY)
+        qualityLabel.setPadding(dp(3), dp(6), 0, 0)
+        card.addView(qualityLabel)
+        card.addView(
+            scalerChipRow(
+                listOf(s("scaler_q_auto"), s("scaler_q_max"), s("scaler_q_balanced"), s("scaler_q_fast")),
+                scalerQualityChips
+            ) { index -> onScalerQuality(index) }
+        )
+
+        val hardware = label("", 9.5f, C_GRAY)
+        hardware.setPadding(dp(3), dp(6), 0, dp(2))
+        scalerHwText = hardware
+        card.addView(hardware)
+
+        val start = toolTile(s("scaler_start")) { onScalerStartStop() }
+        scalerStartButton = start
+        card.addView(toolRow(start))
+
+        scalerCard = card
+        return card
+    }
+
+    private fun toggleScalerCard() {
+        val card = scalerCard ?: return
+        val show = card.visibility != View.VISIBLE
+        card.visibility = if (show) View.VISIBLE else View.GONE
+        if (show) {
+            updateScalerChips()
+            updateScalerTiles()
+            loadHardwareLine()
+        }
+    }
+
+    private fun onScalerMode(mode: Int) {
+        SettingsStore.setScalerMode(this, mode)
+        updateScalerChips()
+        // Changing the mode while it runs takes effect immediately.
+        ScalerService.instance?.applyConfig(ScalerMode.upscale(mode), ScalerMode.frameGen(mode))
+        updateScalerTiles()
+    }
+
+    private fun onScalerQuality(quality: Int) {
+        SettingsStore.setScalerQuality(this, quality)
+        updateScalerChips()
+        loadHardwareLine()
+        if (ScalerService.isRunning) scalerStatusText?.text = s("scaler_quality_next")
+    }
+
+    private fun onScalerStartStop() {
+        val running = ScalerService.instance
+        if (running != null) {
+            running.stopScaler()
+            updateScalerTiles()
+            return
+        }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             Toast.makeText(this, s("scaler_need_android14"), Toast.LENGTH_LONG).show()
             return
         }
-        val upscaler = if (toggleUpscaler) !ScalerService.upscalerOn else ScalerService.upscalerOn
-        val frameGen = if (toggleFrameGen) !ScalerService.frameGenOn else ScalerService.frameGenOn
-        val running = ScalerService.instance
-        if (running != null) {
-            running.applyConfig(upscaler, frameGen)
-        } else if (upscaler || frameGen) {
-            // Android asks "start capturing?" first, on a see-through screen
-            val intent = Intent(this, ScalerPermissionActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.putExtra(ScalerService.EXTRA_UPSCALER, upscaler)
-            intent.putExtra(ScalerService.EXTRA_FRAME_GEN, frameGen)
-            try {
-                startActivity(intent)
-                setPanelExpanded(false)
-            } catch (_: Exception) {
-            }
+        val mode = SettingsStore.scalerMode(this)
+        // Android asks "start capturing?" first, on a see-through screen
+        val intent = Intent(this, ScalerPermissionActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.putExtra(ScalerService.EXTRA_UPSCALER, ScalerMode.upscale(mode))
+        intent.putExtra(ScalerService.EXTRA_FRAME_GEN, ScalerMode.frameGen(mode))
+        try {
+            startActivity(intent)
+            setPanelExpanded(false)
+        } catch (_: Exception) {
         }
         updateScalerTiles()
     }
 
+    private fun updateScalerChips() {
+        val mode = SettingsStore.scalerMode(this)
+        for (i in scalerModeChips.indices) scalerModeChips[i]?.let { styleTile(it, i == mode) }
+        val quality = SettingsStore.scalerQuality(this)
+        for (i in scalerQualityChips.indices) scalerQualityChips[i]?.let { styleTile(it, i == quality) }
+    }
+
+    /** Hardware line: read the real GPU / RAM on the background thread, then show what the Scaler will use. */
+    private fun loadHardwareLine() {
+        val handler = workHandler ?: return
+        handler.post {
+            val profile = HardwareProbe.get(this)
+            mainHandler.post { scalerHwText?.text = describeHardware(profile) }
+        }
+    }
+
+    private fun describeHardware(profile: HardwareProfile): String {
+        val scale = ScalerTuning.scaleFor(SettingsStore.scalerQuality(this), profile.tier)
+        return profile.summary() + "\n" + s("scaler_engine") + " · " + s("scaler_capture") + " " +
+            (scale * 100).roundToInt() + "%"
+    }
+
     private fun updateScalerTiles() {
-        upscalerTile?.let { styleTile(it, ScalerService.upscalerOn) }
-        frameGenTile?.let { styleTile(it, ScalerService.frameGenOn) }
+        val running = ScalerService.isRunning
+        scalerTile?.let { styleTile(it, running) }
+        scalerStartButton?.let {
+            it.text = if (running) s("scaler_stop") else s("scaler_start")
+            styleTile(it, running)
+        }
+        scalerStatusText?.let {
+            it.text = if (running) s("scaler_running") else s("scaler_off")
+            it.setTextColor(if (running) C_GREEN else C_GRAY)
+        }
     }
 
     /** Windows added later sit on top, so after the scaler overlay appears everything of ours goes back over it. */
@@ -1366,8 +1497,13 @@ class QboostOverlayService : Service() {
         boostStatusText = null
         monitorTile = null
         satTile = null
-        upscalerTile = null
-        frameGenTile = null
+        scalerTile = null
+        scalerCard = null
+        scalerStartButton = null
+        scalerStatusText = null
+        scalerHwText = null
+        for (i in scalerModeChips.indices) scalerModeChips[i] = null
+        for (i in scalerQualityChips.indices) scalerQualityChips[i] = null
         hapticsTile = null
         satCard = null
         satSeekBar = null
