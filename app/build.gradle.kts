@@ -89,6 +89,13 @@ android {
     buildConfig = true
   }
   testOptions { unitTests { isIncludeAndroidResources = true } }
+  packaging {
+    jniLibs {
+      // Every .so is already stripped (our native/build-*.sh strip them; androidx ships its own stripped),
+      // so don't ask for the NDK just to strip them again. This removes the "Unable to strip ..." warning.
+      keepDebugSymbols += "**/*.so"
+    }
+  }
   dependenciesInfo {
     includeInApk = false
     includeInBundle = true
