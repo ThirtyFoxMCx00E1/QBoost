@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hardware.TelemetryFormat
 import com.example.model.PerformanceStats
+import com.example.ui.theme.Q
 import com.example.ui.theme.QboostHudAccent
 import com.example.ui.theme.QboostNeonCyan
 import com.example.ui.theme.QboostNeonGreen
@@ -83,13 +84,13 @@ fun SuperBaseScreen(
             Column {
                 Text(
                     text = "QBOOST SUPER BASE",
-                    color = TextWhite,
+                    color = Q.text,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Black
                 )
                 Text(
                     text = "Hardware Telemetry, ABI Engine & Memory Optimization",
-                    color = TextGray,
+                    color = Q.textDim,
                     fontSize = 11.sp
                 )
             }
@@ -121,11 +122,11 @@ fun SuperBaseScreen(
                     .padding(10.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.Memory, contentDescription = null, tint = QboostNeonGreen, modifier = Modifier.size(18.dp))
+                    Icon(imageVector = Icons.Default.Memory, contentDescription = null, tint = Q.green, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Asked Android to stop ${stats.processesCleared} background apps • Freed ${stats.freedRamMb} MB (measured)",
-                        color = Color.White,
+                        color = Q.text,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -150,7 +151,7 @@ fun SuperBaseScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(if (stats.cpuLoadEstimated) "Load (from real clock speeds)" else "Utilization", color = TextGray, fontSize = 11.sp)
+                        Text(if (stats.cpuLoadEstimated) "Load (from real clock speeds)" else "Utilization", color = Q.textDim, fontSize = 11.sp)
                         Text(TelemetryFormat.load(stats.cpuUsagePercent, stats.cpuLoadEstimated), color = QboostBlue, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(4.dp))
@@ -158,12 +159,12 @@ fun SuperBaseScreen(
                         progress = { stats.cpuUsagePercent.coerceAtLeast(0) / 100f },
                         modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
                         color = QboostBlue,
-                        trackColor = Color(0xFF222838)
+                        trackColor = Q.track
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = if (stats.cpuFreqMhz > 0) "Fastest core now: ${TelemetryFormat.ghz(stats.cpuFreqMhz)}" else "Clock speed: N/A on this ROM",
-                        color = TextGray,
+                        color = Q.textDim,
                         fontSize = 10.sp
                     )
                 }
@@ -181,7 +182,7 @@ fun SuperBaseScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Used / Total", color = TextGray, fontSize = 11.sp)
+                        Text("Used / Total", color = Q.textDim, fontSize = 11.sp)
                         Text("${stats.ramUsedMb} / ${stats.ramTotalMb} MB", color = QboostHudAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(4.dp))
@@ -189,10 +190,10 @@ fun SuperBaseScreen(
                         progress = { stats.ramUsedPercent / 100f },
                         modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
                         color = QboostHudAccent,
-                        trackColor = Color(0xFF222838)
+                        trackColor = Q.track
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("In use: ${stats.ramUsedPercent}% • Swap/zRAM: ${TelemetryFormat.swap(stats)}", color = TextGray, fontSize = 10.sp)
+                    Text("In use: ${stats.ramUsedPercent}% • Swap/zRAM: ${TelemetryFormat.swap(stats)}", color = Q.textDim, fontSize = 10.sp)
                 }
             }
         }
@@ -217,7 +218,7 @@ fun SuperBaseScreen(
                     Column {
                         Text(
                             text = TelemetryFormat.temp(stats.cpuTempC),
-                            color = if (stats.cpuTempC > 42f) Color(0xFFFF5252) else QboostNeonGreen,
+                            color = if (stats.cpuTempC > 42f) Color(0xFFFF5252) else Q.green,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Black
                         )
@@ -227,7 +228,7 @@ fun SuperBaseScreen(
                                 stats.cpuTempC >= 40f -> "Status: Warm"
                                 else -> "Status: Cool"
                             },
-                            color = TextGray,
+                            color = Q.textDim,
                             fontSize = 10.sp
                         )
                     }
@@ -235,10 +236,10 @@ fun SuperBaseScreen(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF1E2536)),
+                            .background(Q.cardInner),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(imageVector = Icons.Default.Thermostat, contentDescription = null, tint = QboostNeonCyan, modifier = Modifier.size(20.dp))
+                        Icon(imageVector = Icons.Default.Thermostat, contentDescription = null, tint = Q.cyan, modifier = Modifier.size(20.dp))
                     }
                 }
             }
@@ -258,20 +259,20 @@ fun SuperBaseScreen(
                     Column {
                         Text(
                             text = if (stats.isOnline) (if (stats.pingMs >= 0) "${stats.pingMs} ms" else "-- ms") else "Offline",
-                            color = if (stats.isOnline) QboostNeonGreen else Color.Red,
+                            color = if (stats.isOnline) Q.green else Color.Red,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Black
                         )
-                        Text("Measured to 8.8.8.8 (DNS)", color = TextGray, fontSize = 10.sp)
+                        Text("Measured to 8.8.8.8 (DNS)", color = Q.textDim, fontSize = 10.sp)
                     }
                     Box(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF1E2536)),
+                            .background(Q.cardInner),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(imageVector = Icons.Default.NetworkCheck, contentDescription = null, tint = QboostNeonGreen, modifier = Modifier.size(20.dp))
+                        Icon(imageVector = Icons.Default.NetworkCheck, contentDescription = null, tint = Q.green, modifier = Modifier.size(20.dp))
                     }
                 }
             }
@@ -282,7 +283,7 @@ fun SuperBaseScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFF131824))
+                .background(Q.card)
                 .padding(14.dp)
         ) {
             Column {
@@ -295,13 +296,13 @@ fun SuperBaseScreen(
                         Icon(
                             imageVector = if (hasOverlayPermission) Icons.Default.CheckCircle else Icons.Default.Info,
                             contentDescription = null,
-                            tint = if (hasOverlayPermission) Color(0xFF00E676) else Color(0xFFFF9100),
+                            tint = if (hasOverlayPermission) Q.green else Q.amber,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "FLOATING HUD & SIDELOAD PERMISSION",
-                            color = TextWhite,
+                            color = Q.text,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -317,7 +318,7 @@ fun SuperBaseScreen(
                     ) {
                         Text(
                             text = if (hasOverlayPermission) "HUD READY" else "NEEDS PERMISSION",
-                            color = if (hasOverlayPermission) Color(0xFF00E676) else Color(0xFFFFB74D),
+                            color = if (hasOverlayPermission) Q.green else Q.amber,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -327,11 +328,11 @@ fun SuperBaseScreen(
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = if (hasOverlayPermission) {
-                        "Qboost v10.161.24 Game Space is enabled! Open the in-game panel from the left edge for the System Monitor (FPS, CPU, GPU, RAM), saturation, Scaler and floating apps."
+                        "Qboost v10.162.25 Game Space is enabled! Open the in-game panel from the left edge for the System Monitor (FPS, CPU, GPU, RAM), saturation, Scaler and floating apps."
                     } else {
                         "Getting 'App was denied access' when turning on 'Display over other apps'? This is Android 13+ protection for apps downloaded from Chrome."
                     },
-                    color = TextGray,
+                    color = Q.textDim,
                     fontSize = 11.sp,
                     lineHeight = 16.sp
                 )
@@ -355,13 +356,13 @@ fun SuperBaseScreen(
 
                         Button(
                             onClick = clickSound(onOpenAppInfo),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B2437)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Q.cardInner),
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(Icons.Default.MoreVert, contentDescription = null, tint = QboostNeonCyan, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Default.MoreVert, contentDescription = null, tint = Q.cyan, modifier = Modifier.size(14.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Open App Info (⋮)", color = QboostNeonCyan, fontSize = 11.sp)
+                            Text("Open App Info (⋮)", color = Q.cyan, fontSize = 11.sp)
                         }
                     }
                 }
@@ -381,16 +382,16 @@ fun SuperBaseCard(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF121620))
+            .background(Q.card)
             .padding(14.dp)
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = icon, contentDescription = null, tint = QboostBlue, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = title, color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(text = title, color = Q.text, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
-            Text(text = subtitle, color = TextGray, fontSize = 10.sp)
+            Text(text = subtitle, color = Q.textDim, fontSize = 10.sp)
             Spacer(modifier = Modifier.height(10.dp))
             content()
         }

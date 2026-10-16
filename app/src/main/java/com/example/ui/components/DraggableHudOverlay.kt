@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import com.example.ui.theme.Q
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -38,11 +39,8 @@ import androidx.compose.ui.unit.sp
 import com.example.hardware.TelemetryFormat
 import com.example.model.OverlayConfig
 import com.example.model.PerformanceStats
-import com.example.ui.theme.QboostHudBg
 import com.example.ui.theme.QboostNeonCyan
 import com.example.ui.theme.QboostNeonGreen
-import com.example.ui.theme.TextGray
-import com.example.ui.theme.TextWhite
 import kotlin.math.roundToInt
 
 @Composable
@@ -62,7 +60,7 @@ fun DraggableHudOverlay(
             .offset { IntOffset(posX.roundToInt(), posY.roundToInt()) }
             .scale(config.scale)
             .clip(RoundedCornerShape(14.dp))
-            .background(QboostHudBg.copy(alpha = config.alpha))
+            .background(Q.hudBg.copy(alpha = config.alpha))
             .then(
                 if (isEditMode) {
                     Modifier.pointerInput(Unit) {
@@ -97,7 +95,7 @@ fun DraggableHudOverlay(
 
             // CPU Temp
             if (config.isCpuTempVisible) {
-                HudMetricChip(label = stats.tempSource, value = TelemetryFormat.temp(stats.cpuTempC), valueColor = Color(0xFFFFB74D))
+                HudMetricChip(label = stats.tempSource, value = TelemetryFormat.temp(stats.cpuTempC), valueColor = Q.amber)
             }
 
             // RAM
@@ -122,7 +120,7 @@ fun DraggableHudOverlay(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = if (stats.isOnline) TelemetryFormat.ping(stats) else "OFFLINE",
-                        color = if (stats.isOnline) TextWhite else Color.Red,
+                        color = if (stats.isOnline) Q.text else Color.Red,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -155,7 +153,7 @@ fun HudMetricChip(
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = "$label ",
-            color = TextGray,
+            color = Q.textDim,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold
         )

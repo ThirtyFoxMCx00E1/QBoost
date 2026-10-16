@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import com.example.ui.theme.Q
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -51,14 +52,10 @@ import com.example.hardware.TelemetryFormat
 import com.example.model.GameItem
 import com.example.model.PerformanceMode
 import com.example.model.PerformanceStats
-import com.example.ui.theme.QboostHudBg
-import com.example.ui.theme.QboostHudCard
 import com.example.ui.theme.QboostHudAccent
 import com.example.ui.theme.QboostHudAccentGlow
 import com.example.ui.theme.QboostHudAccentLight
 import com.example.ui.theme.QboostNeonCyan
-import com.example.ui.theme.TextGray
-import com.example.ui.theme.TextWhite
 
 @Composable
 fun QboostFloatingPanel(
@@ -91,7 +88,7 @@ fun QboostFloatingPanel(
             .width(360.dp)
             .wrapContentHeight()
             .clip(RoundedCornerShape(24.dp))
-            .background(QboostHudBg)
+            .background(Q.hudBg)
             .clickable(enabled = true, onClick = { /* prevent tap propagation */ })
             .padding(18.dp)
             .testTag("qboost_floating_panel")
@@ -110,7 +107,7 @@ fun QboostFloatingPanel(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "CPU",
-                        color = TextGray,
+                        color = Q.textDim,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -125,14 +122,14 @@ fun QboostFloatingPanel(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "FPS",
-                        color = TextGray,
+                        color = Q.textDim,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = TelemetryFormat.fps(stats),
-                        color = TextWhite,
+                        color = Q.text,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Black
                     )
@@ -165,7 +162,7 @@ fun QboostFloatingPanel(
                     ) {
                         Text(
                             text = game.initials,
-                            color = TextWhite,
+                            color = Q.text,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
@@ -176,14 +173,14 @@ fun QboostFloatingPanel(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "RAM",
-                        color = TextGray,
+                        color = Q.textDim,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "${stats.ramUsedPercent}",
-                        color = TextWhite,
+                        color = Q.text,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Black
                     )
@@ -193,7 +190,7 @@ fun QboostFloatingPanel(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "GPU",
-                        color = TextGray,
+                        color = Q.textDim,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -212,7 +209,7 @@ fun QboostFloatingPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(32.dp))
-                    .background(Color(0xFF171B24))
+                    .background(Q.cardInner)
                     .padding(3.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -233,7 +230,7 @@ fun QboostFloatingPanel(
                     ) {
                         Text(
                             text = mode.displayName,
-                            color = if (isSelected) TextWhite else TextGray,
+                            color = if (isSelected) Q.text else Q.textDim,
                             fontSize = 11.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         )
@@ -296,7 +293,7 @@ fun QboostFloatingPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF141720))
+                    .background(Q.card)
                     .padding(horizontal = 8.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -374,7 +371,7 @@ fun QboostFloatingPanel(
                     modifier = Modifier
                         .height(20.dp)
                         .width(1.dp)
-                        .background(Color(0xFF2E3444))
+                        .background(Q.cardInner)
                 )
 
                 // Tools: Edit overlay positions + Settings
@@ -398,7 +395,7 @@ fun QboostFloatingPanel(
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Qboost Game Settings",
-                            tint = TextWhite,
+                            tint = Q.text,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -419,7 +416,7 @@ fun VerticalPillBar(
             .width(12.dp)
             .height(28.dp)
             .clip(RoundedCornerShape(6.dp))
-            .background(Color(0xFF262C3A)),
+            .background(Q.cardInner),
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(
@@ -456,14 +453,14 @@ fun HudActionButton(
         modifier = modifier
             .height(44.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(if (isActive) Color(0xFF282D3D) else QboostHudCard)
+            .background(if (isActive) Q.cardInner else Q.hudCard)
             .then(borderModifier)
             .qClickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = if (isActive) TextWhite else TextGray,
+            color = if (isActive) Q.text else Q.textDim,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold
         )

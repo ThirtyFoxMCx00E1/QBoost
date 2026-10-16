@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import com.example.ui.theme.Q
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -56,8 +57,6 @@ import com.example.model.OverlayConfig
 import com.example.ui.theme.QboostHudAccent
 import com.example.ui.theme.QboostNeonCyan
 import com.example.ui.theme.QboostBlue
-import com.example.ui.theme.TextGray
-import com.example.ui.theme.TextWhite
 import kotlin.math.roundToInt
 
 @Composable
@@ -87,7 +86,7 @@ fun GameSettingsSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(22.dp))
-                .background(Color(0xFF131722))
+                .background(Q.sheet)
                 .padding(20.dp)
                 .testTag("game_settings_sheet")
         ) {
@@ -112,7 +111,7 @@ fun GameSettingsSheet(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "${game.name} Tuning",
-                            color = TextWhite,
+                            color = Q.text,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -121,7 +120,7 @@ fun GameSettingsSheet(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = TextGray,
+                            tint = Q.textDim,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -140,7 +139,7 @@ fun GameSettingsSheet(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Saturation Multiplier", color = TextGray, fontSize = 11.sp)
+                            Text("Saturation Multiplier", color = Q.textDim, fontSize = 11.sp)
                             Text(
                                 text = "${(saturation * 100).roundToInt()}%",
                                 color = QboostNeonCyan,
@@ -155,7 +154,7 @@ fun GameSettingsSheet(
                             colors = SliderDefaults.colors(
                                 thumbColor = QboostNeonCyan,
                                 activeTrackColor = QboostNeonCyan,
-                                inactiveTrackColor = Color(0xFF272F3E)
+                                inactiveTrackColor = Q.track
                             ),
                             modifier = Modifier.testTag("saturation_slider")
                         )
@@ -175,7 +174,7 @@ fun GameSettingsSheet(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Sensitivity Level", color = TextGray, fontSize = 11.sp)
+                            Text("Sensitivity Level", color = Q.textDim, fontSize = 11.sp)
                             Text(
                                 text = "Level $touchSensitivity / 10",
                                 color = QboostHudAccent,
@@ -191,7 +190,7 @@ fun GameSettingsSheet(
                             colors = SliderDefaults.colors(
                                 thumbColor = QboostHudAccent,
                                 activeTrackColor = QboostHudAccent,
-                                inactiveTrackColor = Color(0xFF272F3E)
+                                inactiveTrackColor = Q.track
                             )
                         )
                     }
@@ -218,8 +217,8 @@ fun GameSettingsSheet(
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = QboostBlue,
                                     selectedLabelColor = Color.White,
-                                    containerColor = Color(0xFF1E2433),
-                                    labelColor = TextGray
+                                    containerColor = Q.cardInner,
+                                    labelColor = Q.textDim
                                 )
                             )
                         }
@@ -240,7 +239,7 @@ fun GameSettingsSheet(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Block Incoming Notifications", color = TextWhite, fontSize = 12.sp)
+                            Text("Block Incoming Notifications", color = Q.text, fontSize = 12.sp)
                             Switch(
                                 checked = blockNotifications,
                                 onCheckedChange = { blockNotifications = it },
@@ -255,7 +254,7 @@ fun GameSettingsSheet(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Block Incoming Calls & Alarms", color = TextWhite, fontSize = 12.sp)
+                            Text("Block Incoming Calls & Alarms", color = Q.text, fontSize = 12.sp)
                             Switch(
                                 checked = blockCalls,
                                 onCheckedChange = { blockCalls = it },
@@ -339,16 +338,16 @@ fun SettingsCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFF0F1219))
+            .background(Q.sunken)
             .padding(12.dp)
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = icon, contentDescription = null, tint = TextGray, modifier = Modifier.size(16.dp))
+                Icon(imageVector = icon, contentDescription = null, tint = Q.textDim, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = title, color = TextWhite, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                Text(text = title, color = Q.text, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
-            Text(text = subtitle, color = TextGray, fontSize = 10.sp)
+            Text(text = subtitle, color = Q.textDim, fontSize = 10.sp)
             Spacer(modifier = Modifier.height(8.dp))
             content()
         }
@@ -364,13 +363,13 @@ fun MetricToggleChip(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(if (checked) QboostBlue.copy(alpha = 0.25f) else Color(0xFF1B202D))
+            .background(if (checked) QboostBlue.copy(alpha = 0.25f) else Q.cardInner)
             .qClickable(onClick = onToggle)
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
         Text(
             text = label,
-            color = if (checked) Color.White else TextGray,
+            color = if (checked) Color.White else Q.textDim,
             fontSize = 11.sp,
             fontWeight = if (checked) FontWeight.Bold else FontWeight.Normal
         )

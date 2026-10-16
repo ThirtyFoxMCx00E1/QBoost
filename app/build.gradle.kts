@@ -45,8 +45,8 @@ android {
     applicationId = "com.qboost.hub"
     minSdk = 24
     targetSdk = 36
-    versionCode = 27
-    versionName = "10.161.24"
+    versionCode = 28
+    versionName = "10.162.25"
 
     ndk {
       abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
@@ -89,6 +89,13 @@ android {
     buildConfig = true
   }
   testOptions { unitTests { isIncludeAndroidResources = true } }
+  packaging {
+    jniLibs {
+      // Every .so is already stripped (our native/build-*.sh strip them; androidx ships its own stripped),
+      // so don't ask for the NDK just to strip them again. This removes the "Unable to strip ..." warning.
+      keepDebugSymbols += "**/*.so"
+    }
+  }
   dependenciesInfo {
     includeInApk = false
     includeInBundle = true

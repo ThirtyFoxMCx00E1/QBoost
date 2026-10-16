@@ -8,15 +8,17 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
+import android.hardware.HardwareBuffer
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
+import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Looper
 import android.view.Gravity
@@ -32,15 +34,27 @@ import com.example.R
 import com.example.hardware.HardwareProbe
 import com.example.hardware.ScalerTuning
 import com.example.i18n.I18n
+import com.example.scaler.GameDownscale
+import com.example.scaler.Lossless
+import com.example.scaler.LsfgNative
+import com.example.scaler.ScalerSupport
 import com.example.settings.SettingsStore
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
- * Upscaler + Frame gen (experimental).
+ * The Scaler (Android 14+, "share a single app").
  *
- * It asks Android to capture the game (Android 14+, "share a single app"), runs the captured frames
- * through [ScalerRenderer] and shows the result in a full-screen overlay that lets every touch
- * through to the game. The overlay stays invisible until the first processed frame is ready, hides
- * whenever the game is not on screen, and everything is torn down if anything goes wrong.
+ *  - Frame gen is real LSFG, the frame generation of Lossless Scaling: the captured game frames go
+ *    through the LSFG engine (from DroidDeck, shaders translated from the user's own Lossless.dll) on
+ *    the GPU with Vulkan compute, and the real + generated frames are presented on a full-screen
+ *    overlay that lets every touch through. x2 / x3 / x4 like Lossless Scaling.
+ *  - Upscale asks Android (root only) to render the game at the Quality size; the capture is taken at
+ *    that size and the display hardware scales it to the screen, which costs no GPU time.
+ *
+ * Nothing is drawn with OpenGL any more and there is no CPU copy: capture buffers are imported
+ * straight into Vulkan. Without Lossless.dll (or on a GPU LSFG cannot run on) frame gen is refused
+ * with the reason instead of being faked.
  */
 class ScalerService : Service() {
 
@@ -51,6 +65,7 @@ class ScalerService : Service() {
         const val EXTRA_RESULT_DATA = "com.example.service.SCALER_RESULT_DATA"
         const val EXTRA_UPSCALER = "com.example.service.SCALER_UPSCALER"
         const val EXTRA_FRAME_GEN = "com.example.service.SCALER_FRAME_GEN"
+        const val EXTRA_GAME_PACKAGE = "com.example.service.SCALER_GAME_PACKAGE"
         private const val CHANNEL_ID = "qboost_scaler_channel"
         private const val NOTIFICATION_ID = 2026
 
@@ -63,7 +78,22 @@ class ScalerService : Service() {
         @Volatile
         var frameGenOn = false
 
-        /** Called (on any thread) whenever the Upscaler / Frame gen state changes. */
+        /** Live numbers for the panel, refreshed about once a second while running. */
+        @Volatile
+        var sourceFps = 0f
+
+        @Volatile
+        var shownFps = 0f
+
+        /** True when Android really renders the game smaller (root Game Mode downscale). */
+        @Volatile
+        var downscaleActive = false
+
+        /** True when this session runs the LSFG engine (Lossless.dll loaded). */
+        @Volatile
+        var lsfgActive = false
+
+        /** Called (on any thread) whenever the Scaler state or its live numbers change. */
         var onStateChanged: (() -> Unit)? = null
 
         /** Called when the scaler overlay window was added, so the panel can move itself back on top. */
@@ -74,19 +104,34 @@ class ScalerService : Service() {
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var worker: HandlerThread? = null
+    private var workHandler: Handler? = null
+
     private var windowManager: WindowManager? = null
     private var projection: MediaProjection? = null
-    private var virtualDisplay: VirtualDisplay? = null
-    private var renderer: ScalerRenderer? = null
     private var overlayRoot: FrameLayout? = null
     private var overlayParams: WindowManager.LayoutParams? = null
-    private var firstFrameShown = false
 
-    /** Fraction of the screen resolution that is captured (1.0 = full). Below 1.0 the result is scaled back up. */
-    private var captureScale = 1.0f
+    // Owned by the worker thread
+    private var virtualDisplay: VirtualDisplay? = null
+    private var reader: ImageReader? = null
+    private var handle = 0L
+
+    @Volatile
+    private var firstFrameShown = false
     private var contentVisible = true
+
+    @Volatile
     private var stopping = false
     private var language = "en"
+    private var gamePackage = ""
+    private var captureScale = 1.0f
+    private var flowScale = 0.8f
+    private var multiplier = 2
+    private var captureWidth = 0
+    private var captureHeight = 0
+    private var cachePath: String? = null
+    private val statsBuffer = FloatArray(4)
 
     private val watchdog = Runnable {
         if (!firstFrameShown) {
@@ -95,9 +140,16 @@ class ScalerService : Service() {
         }
     }
 
-    private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == SettingsStore.KEY_SCALER_SHARPNESS) {
-            renderer?.sharpness = SettingsStore.load(this).scalerSharpness
+    private val statsTick = object : Runnable {
+        override fun run() {
+            val h = handle
+            if (h != 0L && !stopping) {
+                LsfgNative.nativeStats(h, statsBuffer)
+                sourceFps = statsBuffer[0]
+                shownFps = statsBuffer[1]
+                onStateChanged?.invoke()
+                workHandler?.postDelayed(this, 1000L)
+            }
         }
     }
 
@@ -119,6 +171,10 @@ class ScalerService : Service() {
         Toast.makeText(this, I18n.t(language, key), Toast.LENGTH_LONG).show()
     }
 
+    private fun toastText(text: String) {
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+    }
+
     private fun startScaler(intent: Intent) {
         I18n.init(this)
         language = SettingsStore.load(this).language
@@ -131,14 +187,14 @@ class ScalerService : Service() {
             stopScaler()
             return
         }
+        if (!LsfgNative.available) {
+            toast("lsfg_unsupported_abi")
+            stopScaler()
+            return
+        }
 
         val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
-        val data: Intent? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra(EXTRA_RESULT_DATA, Intent::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra(EXTRA_RESULT_DATA)
-        }
+        val data: Intent? = intent.getParcelableExtra(EXTRA_RESULT_DATA, Intent::class.java)
         if (data == null || resultCode != Activity.RESULT_OK) {
             toast("scaler_denied")
             stopScaler()
@@ -147,6 +203,7 @@ class ScalerService : Service() {
 
         upscalerOn = intent.getBooleanExtra(EXTRA_UPSCALER, false)
         frameGenOn = intent.getBooleanExtra(EXTRA_FRAME_GEN, false)
+        gamePackage = intent.getStringExtra(EXTRA_GAME_PACKAGE).orEmpty()
 
         try {
             val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -169,33 +226,80 @@ class ScalerService : Service() {
             }, mainHandler)
             projection = mp
             instance = this
-            getSharedPreferences(SettingsStore.prefsName(), Context.MODE_PRIVATE)
-                .registerOnSharedPreferenceChangeListener(prefsListener)
-            createOverlay()
-            onStateChanged?.invoke()
         } catch (e: Throwable) {
             toast("scaler_failed")
             stopScaler()
+            return
         }
+
+        val t = HandlerThread("qboost-scaler")
+        t.start()
+        worker = t
+        val h = Handler(t.looper)
+        workHandler = h
+        h.post { prepareOnWorker() }
+        onStateChanged?.invoke()
+    }
+
+    /** Checks the GPU and Lossless.dll, applies the root downscale, then builds the overlay. */
+    private fun prepareOnWorker() {
+        val report = ScalerSupport.report(this)
+        if (frameGenOn) {
+            val problem = when {
+                !report.frameGenPossible -> I18n.t(language, "lsfg_gpu_unsupported") + "\n" + report.gpuProblem
+                !report.losslessReady -> I18n.t(language, "lsfg_need_dll")
+                else -> null
+            }
+            cachePath = if (problem == null) Lossless.readyCache(this)?.path else null
+            if (cachePath == null) {
+                val message = problem ?: I18n.t(language, "lsfg_import_failed")
+                mainHandler.post {
+                    toastText(message)
+                    frameGenOn = false
+                    if (!upscalerOn) stopScaler()
+                }
+                if (!upscalerOn) return
+            }
+        }
+        lsfgActive = cachePath != null
+
+        val tier = HardwareProbe.get(this).tier
+        val quality = SettingsStore.scalerQuality(this)
+        captureScale = if (upscalerOn || lsfgActive) ScalerTuning.scaleFor(quality, tier) else 1.0f
+        flowScale = ScalerTuning.flowScaleFor(quality, tier)
+        multiplier = SettingsStore.scalerMultiplier(this)
+
+        if (upscalerOn) {
+            downscaleActive = captureScale < 0.999f && GameDownscale.apply(gamePackage, captureScale)
+            if (!downscaleActive) mainHandler.post { toast("scaler_upscale_needs_root") }
+        }
+        mainHandler.post { if (!stopping) createOverlay() }
     }
 
     private fun createOverlay() {
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         windowManager = wm
         val bounds = wm.maximumWindowMetrics.bounds
-        val width = bounds.width()
-        val height = bounds.height()
+        captureWidth = ScalerTuning.scaledSize(bounds.width(), captureScale)
+        captureHeight = ScalerTuning.scaledSize(bounds.height(), captureScale)
         val dpi = resources.displayMetrics.densityDpi
+        val refreshHz = (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
+            .getDisplay(android.view.Display.DEFAULT_DISPLAY)?.refreshRate ?: 60f
 
         val surfaceView = SurfaceView(this)
+        // Buffers at the capture size: the display hardware scales them to the screen for free.
+        surfaceView.holder.setFixedSize(captureWidth, captureHeight)
         surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceCreated(holder: SurfaceHolder) {
-                onOverlaySurface(holder.surface, width, height, dpi)
+                val surface = holder.surface
+                workHandler?.post { startPipeline(surface, dpi, refreshHz) }
             }
 
             override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
 
             override fun surfaceDestroyed(holder: SurfaceHolder) {
+                // The pipeline must let go of the window before this returns.
+                releasePipelineBlocking()
                 mainHandler.post { stopScaler() }
             }
         })
@@ -212,81 +316,103 @@ class ScalerService : Service() {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             // Not touchable: every touch goes straight through to the game
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT
         )
         params.gravity = Gravity.TOP or Gravity.START
         params.alpha = 0f // invisible until the first processed frame is ready
         params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-
-        wm.addView(root, params)
-        overlayRoot = root
-        overlayParams = params
-        onOverlayAdded?.invoke()
-    }
-
-    private fun onOverlaySurface(surface: Surface, width: Int, height: Int, dpi: Int) {
-        if (renderer != null || stopping) return
-
-        // Real-hardware tuning: the capture size follows the Quality setting (Auto = by the phone's tier).
-        // Capturing below full size cuts the GPU work of the whole pipeline; the frame is then scaled back
-        // up to the screen and sharpened, which is the "upscale" half of the Scaler.
-        val tier = HardwareProbe.peek(this).tier
-        captureScale = ScalerTuning.scaleFor(SettingsStore.scalerQuality(this), tier)
-        val inWidth = ScalerTuning.scaledSize(width, captureScale)
-        val inHeight = ScalerTuning.scaledSize(height, captureScale)
-
-        val r = ScalerRenderer(surface, width, height, inWidth, inHeight, object : ScalerRenderer.Listener {
-            override fun onFirstFrame() {
-                mainHandler.post {
-                    firstFrameShown = true
-                    mainHandler.removeCallbacks(watchdog)
-                    updateOverlayAlpha()
-                }
-            }
-
-            override fun onError(message: String) {
-                mainHandler.post {
-                    toast("scaler_failed")
-                    stopScaler()
-                }
-            }
-        })
-        r.upscalerOn = effectiveUpscaler(upscalerOn)
-        r.frameGenOn = frameGenOn
-        r.sharpness = SettingsStore.load(this).scalerSharpness
-        renderer = r
-
-        val input = r.start()
-        if (input == null) {
-            toast("scaler_failed")
-            stopScaler()
-            return
-        }
         try {
-            virtualDisplay = projection?.createVirtualDisplay(
-                "QboostScaler",
-                inWidth,
-                inHeight,
-                dpi,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                input,
-                null,
-                mainHandler
-            )
+            wm.addView(root, params)
         } catch (e: Throwable) {
             toast("scaler_failed")
             stopScaler()
             return
         }
-        mainHandler.postDelayed(watchdog, 4000L)
+        overlayRoot = root
+        overlayParams = params
+        onOverlayAdded?.invoke()
+        mainHandler.postDelayed(watchdog, 6000L)
     }
 
-    /** A reduced-size capture always gets the sharpening pass: that pass is what reconstructs the detail. */
-    private fun effectiveUpscaler(requested: Boolean): Boolean = requested || captureScale < 0.999f
+    /** Worker thread: Vulkan pipeline on the overlay, then the capture into an ImageReader. */
+    private fun startPipeline(surface: Surface, dpi: Int, refreshHz: Float) {
+        if (stopping || handle != 0L) return
+        val h = try {
+            LsfgNative.nativeStart(
+                surface, cachePath, captureWidth, captureHeight,
+                if (lsfgActive && frameGenOn) multiplier else 1, flowScale, refreshHz
+            )
+        } catch (t: Throwable) {
+            0L
+        }
+        if (h == 0L) {
+            val why = runCatching { LsfgNative.nativeLastError() }.getOrDefault("")
+            mainHandler.post {
+                toastText(I18n.t(language, "scaler_failed") + if (why.isNotBlank()) "\n$why" else "")
+                stopScaler()
+            }
+            return
+        }
+        handle = h
+        try {
+            val r = ImageReader.newInstance(
+                captureWidth, captureHeight, PixelFormat.RGBA_8888, 3,
+                HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE
+            )
+            r.setOnImageAvailableListener({ onCapturedFrame(it) }, workHandler)
+            reader = r
+            virtualDisplay = projection?.createVirtualDisplay(
+                "QboostScaler", captureWidth, captureHeight, dpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, r.surface, null, workHandler
+            )
+        } catch (e: Throwable) {
+            mainHandler.post {
+                toast("scaler_failed")
+                stopScaler()
+            }
+            return
+        }
+        workHandler?.postDelayed(statsTick, 1000L)
+    }
+
+    private fun onCapturedFrame(source: ImageReader) {
+        val h = handle
+        val image = try {
+            source.acquireLatestImage()
+        } catch (_: Throwable) {
+            null
+        } ?: return
+        try {
+            if (h == 0L || stopping) return
+            val buffer = image.hardwareBuffer ?: return
+            val result = try {
+                LsfgNative.nativeFrame(h, buffer)
+            } finally {
+                buffer.close()
+            }
+            if (result < 0) {
+                val why = runCatching { LsfgNative.nativeLastError() }.getOrDefault("")
+                mainHandler.post {
+                    toastText(I18n.t(language, "scaler_failed") + if (why.isNotBlank()) "\n$why" else "")
+                    stopScaler()
+                }
+                return
+            }
+            if (!firstFrameShown) {
+                firstFrameShown = true
+                mainHandler.post {
+                    mainHandler.removeCallbacks(watchdog)
+                    updateOverlayAlpha()
+                }
+            }
+        } finally {
+            image.close()
+        }
+    }
 
     private fun setContentVisible(visible: Boolean) {
         contentVisible = visible
@@ -304,16 +430,83 @@ class ScalerService : Service() {
         }
     }
 
-    /** Called from the panel when the user toggles Upscaler or Frame gen while the scaler is running. */
+    /** Called from the panel when the mode changes while the Scaler is running. */
     fun applyConfig(upscaler: Boolean, frameGen: Boolean) {
-        upscalerOn = upscaler
-        frameGenOn = frameGen
-        renderer?.upscalerOn = effectiveUpscaler(upscaler)
-        renderer?.frameGenOn = frameGen
         if (!upscaler && !frameGen) {
             stopScaler()
-        } else {
+            return
+        }
+        val upscaleChanged = upscaler != upscalerOn
+        upscalerOn = upscaler
+        frameGenOn = frameGen && lsfgActive
+        if (frameGen && !lsfgActive) toast("scaler_framegen_next")
+        workHandler?.post {
+            val h = handle
+            if (h != 0L) LsfgNative.nativeConfigure(h, if (frameGenOn) multiplier else 1, flowScale)
+            if (upscaleChanged) {
+                if (upscaler) {
+                    downscaleActive = captureScale < 0.999f && GameDownscale.apply(gamePackage, captureScale)
+                } else if (downscaleActive) {
+                    GameDownscale.reset(gamePackage)
+                    downscaleActive = false
+                }
+            }
             onStateChanged?.invoke()
+        }
+        onStateChanged?.invoke()
+    }
+
+    /** x2 / x3 / x4, applied on the next captured frame. */
+    fun applyMultiplier(value: Int) {
+        multiplier = value.coerceIn(2, 4)
+        workHandler?.post {
+            val h = handle
+            if (h != 0L && frameGenOn) LsfgNative.nativeConfigure(h, multiplier, flowScale)
+        }
+    }
+
+    /** Worker-thread teardown of capture + Vulkan; waits so the overlay surface can safely go away. */
+    private fun releasePipelineBlocking() {
+        val h = workHandler ?: return
+        if (Looper.myLooper() == h.looper) {
+            releasePipeline()
+            return
+        }
+        val done = CountDownLatch(1)
+        h.post {
+            releasePipeline()
+            done.countDown()
+        }
+        try {
+            done.await(2, TimeUnit.SECONDS)
+        } catch (_: InterruptedException) {
+        }
+    }
+
+    private fun releasePipeline() {
+        workHandler?.removeCallbacks(statsTick)
+        try {
+            virtualDisplay?.release()
+        } catch (_: Exception) {
+        }
+        virtualDisplay = null
+        reader?.setOnImageAvailableListener(null, null)
+        val h = handle
+        handle = 0L
+        if (h != 0L) {
+            try {
+                LsfgNative.nativeStop(h)
+            } catch (_: Throwable) {
+            }
+        }
+        try {
+            reader?.close()
+        } catch (_: Exception) {
+        }
+        reader = null
+        if (downscaleActive) {
+            GameDownscale.reset(gamePackage)
+            downscaleActive = false
         }
     }
 
@@ -321,23 +514,12 @@ class ScalerService : Service() {
         if (stopping) return
         stopping = true
         mainHandler.removeCallbacks(watchdog)
-        try {
-            getSharedPreferences(SettingsStore.prefsName(), Context.MODE_PRIVATE)
-                .unregisterOnSharedPreferenceChangeListener(prefsListener)
-        } catch (_: Exception) {
-        }
-        try {
-            virtualDisplay?.release()
-        } catch (_: Exception) {
-        }
-        virtualDisplay = null
+        releasePipelineBlocking()
         try {
             projection?.stop()
         } catch (_: Exception) {
         }
         projection = null
-        renderer?.stop()
-        renderer = null
         overlayRoot?.let {
             try {
                 windowManager?.removeView(it)
@@ -345,9 +527,15 @@ class ScalerService : Service() {
             }
         }
         overlayRoot = null
+        worker?.quitSafely()
+        worker = null
+        workHandler = null
         instance = null
         upscalerOn = false
         frameGenOn = false
+        lsfgActive = false
+        sourceFps = 0f
+        shownFps = 0f
         onStateChanged?.invoke()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -362,7 +550,7 @@ class ScalerService : Service() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "Qboost Upscaler / Frame gen", NotificationManager.IMPORTANCE_LOW)
+                NotificationChannel(CHANNEL_ID, "Qboost Scaler", NotificationManager.IMPORTANCE_LOW)
             )
         }
         val stopIntent = PendingIntent.getService(
@@ -372,7 +560,7 @@ class ScalerService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Qboost Upscaler / Frame gen")
+            .setContentTitle("Qboost Scaler")
             .setContentText("Running - tap Stop to end")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)

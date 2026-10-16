@@ -326,18 +326,8 @@ fun SettingsScreen(
                         }
 
                         SettingsCategory.DISPLAY -> {
-                            SettingRow(
-                                title = tr("scaler_sharpness"),
-                                description = tr("scaler_sharpness_desc")
-                            ) {
-                                SettingSlider(
-                                    value = settings.scalerSharpness,
-                                    valueRange = 0f..1f,
-                                    onValueChange = onScalerSharpnessChange,
-                                    tag = "setting_scaler_sharpness"
-                                )
-                            }
-                            RowDivider()
+                            // The Scaler no longer sharpens (LSFG frame generation + display-hardware scaling),
+                            // so its old sharpness slider is gone; Scaler options live in the in-game panel.
                             SettingRow(
                                 title = tr("reset_saturation"),
                                 description = tr("reset_saturation_desc"),

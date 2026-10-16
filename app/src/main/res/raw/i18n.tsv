@@ -97,7 +97,7 @@ upscaler	Upscaler	Escalador	アップスケーラー	Upscaler	مُحسِّن ا�
 frame_gen	Frame gen	Gen. de fotogramas	フレーム生成	Génération d'images	توليد الإطارات	프레임 생성	帧生成	Geração de quadros	Frame-Generierung	Генерация кадров	फ्रेम जेन	Frame gen	Kare üretimi
 scaler_sharpness	Scaler sharpness	Nitidez del escalador	アップスケーラーのシャープネス	Netteté de l'upscaler	حدة مُحسِّن الدقة	업스케일러 선명도	超分辨率锐度	Nitidez do upscaler	Upscaler-Schärfe	Резкость апскейлера	अपस्केलर शार्पनेस	Ketajaman upscaler	Upscaler keskinliği
 scaler_sharpness_desc	Sharpening strength of the Scaler. It captures your game screen and needs Android 14 or newer	Fuerza de nitidez del escalador. Captura la pantalla del juego y requiere Android 14 o superior	アップスケーラーのシャープ化の強さ。ゲーム画面をキャプチャするためAndroid 14以降が必要です	Force de netteté de l'upscaler. Il capture l'écran du jeu et nécessite Android 14 ou plus	قوة الحدة في مُحسِّن الدقة. يلتقط شاشة اللعبة ويتطلب Android 14 أو أحدث	업스케일러의 선명도 강도입니다. 게임 화면을 캡처하며 Android 14 이상이 필요합니다	超分辨率的锐化强度。它会捕获游戏画面，需要 Android 14 或更高版本	Intensidade de nitidez do upscaler. Captura a tela do jogo e exige Android 14 ou mais recente	Schärfestärke des Upscalers. Er nimmt den Spielbildschirm auf und braucht Android 14 oder neuer	Сила резкости апскейлера. Он захватывает экран игры и требует Android 14 или новее	अपस्केलर की शार्पनिंग ताकत। यह गेम स्क्रीन कैप्चर करता है और Android 14 या नया चाहिए	Kekuatan penajaman upscaler. Menangkap layar game dan butuh Android 14 atau lebih baru	Upscaler'ın keskinleştirme gücü. Oyun ekranını yakalar ve Android 14 veya üstü gerekir
-scaler_need_android14	Upscaler and Frame gen need Android 14 or newer	El escalador y la generación de fotogramas requieren Android 14 o superior	アップスケーラーとフレーム生成にはAndroid 14以降が必要です	L'upscaler et la génération d'images nécessitent Android 14 ou plus	يتطلب مُحسِّن الدقة وتوليد الإطارات Android 14 أو أحدث	업스케일러와 프레임 생성에는 Android 14 이상이 필요합니다	超分辨率和帧生成需要 Android 14 或更高版本	Upscaler e geração de quadros exigem Android 14 ou mais recente	Upscaler und Frame-Generierung brauchen Android 14 oder neuer	Апскейлер и генерация кадров требуют Android 14 или новее	अपस्केलर और फ्रेम जेन के लिए Android 14 या नया चाहिए	Upscaler dan Frame gen butuh Android 14 atau lebih baru	Upscaler ve kare üretimi için Android 14 veya üstü gerekir
+scaler_need_android14	The Scaler needs Android 14 or newer	El escalador y la generación de fotogramas requieren Android 14 o superior	アップスケーラーとフレーム生成にはAndroid 14以降が必要です	L'upscaler et la génération d'images nécessitent Android 14 ou plus	يتطلب مُحسِّن الدقة وتوليد الإطارات Android 14 أو أحدث	업스케일러와 프레임 생성에는 Android 14 이상이 필요합니다	超分辨率和帧生成需要 Android 14 或更高版本	Upscaler e geração de quadros exigem Android 14 ou mais recente	Upscaler und Frame-Generierung brauchen Android 14 oder neuer	Апскейлер и генерация кадров требуют Android 14 или новее	अपस्केलर और फ्रेम जेन के लिए Android 14 या नया चाहिए	Upscaler dan Frame gen butuh Android 14 atau lebih baru	Upscaler ve kare üretimi için Android 14 veya üstü gerekir
 scaler_pick_app	Choose “A single app” and pick your game	Elige «Una sola app» y selecciona tu juego	「1つのアプリ」を選んでゲームを選択してください	Choisissez « Une seule appli » puis votre jeu	اختر «تطبيق واحد» ثم لعبتك	‘단일 앱’을 선택하고 게임을 고르세요	请选择“单个应用”并选择你的游戏	Escolha “Um único app” e selecione seu jogo	Wähle „Eine einzelne App“ und dein Spiel	Выберите «Одно приложение» и свою игру	“एक ऐप” चुनें और अपना गेम चुनें	Pilih “Satu aplikasi” lalu pilih game Anda	“Tek bir uygulama”yı seçip oyununuzu seçin
 scaler_failed	Scaler could not start	No se pudo iniciar el escalador	スケーラーを開始できませんでした	Impossible de démarrer le scaler	تعذر تشغيل المُحسِّن	스케일러를 시작할 수 없습니다	无法启动缩放器	Não foi possível iniciar o scaler	Scaler konnte nicht gestartet werden	Не удалось запустить скейлер	स्केलर शुरू नहीं हो सका	Scaler tidak dapat dimulai	Ölçekleyici başlatılamadı
 scaler_denied	Screen capture was not allowed	No se permitió la captura de pantalla	画面キャプチャが許可されませんでした	La capture d'écran n'a pas été autorisée	لم يُسمح بالتقاط الشاشة	화면 캡처가 허용되지 않았습니다	未允许屏幕捕获	A captura de tela não foi permitida	Bildschirmaufnahme wurde nicht erlaubt	Захват экрана не разрешён	स्क्रीन कैप्चर की अनुमति नहीं मिली	Tangkapan layar tidak diizinkan	Ekran yakalamaya izin verilmedi
@@ -168,5 +168,20 @@ scaler_start	Start Scaler
 scaler_stop	Stop Scaler												
 scaler_running	Running												
 scaler_off	Off												
-scaler_engine	Built-in engine												
+scaler_engine	LSFG (Lossless Scaling)													
 scaler_capture	capture												
+scaler_multiplier	Frame gen multiplier													
+lsfg_import	Import Lossless.dll													
+lsfg_import_hint	Pick Lossless.dll. On your PC it is in Steam > Lossless Scaling > Manage > Browse local files													
+lsfg_importing	Reading Lossless.dll and building the shaders…													
+lsfg_imported	Lossless.dll imported: frame generation is ready													
+lsfg_import_unchanged	This Lossless.dll is already imported													
+lsfg_import_invalid	That file is not Lossless.dll from Lossless Scaling (no frame generation shaders inside)													
+lsfg_import_failed	Could not import Lossless.dll													
+lsfg_unsupported_abi	Frame generation needs a 64-bit phone (arm64) with Android 10+													
+lsfg_gpu_unsupported	This GPU cannot run LSFG frame generation													
+lsfg_need_dll	Frame gen needs your own Lossless.dll: tap Import Lossless.dll in the Scaler card													
+lsfg_dll_ready	Lossless.dll ready													
+lsfg_dll_missing	Lossless.dll not imported (needed for Frame gen)													
+scaler_upscale_needs_root	Upscale needs root to make the game render smaller; showing the game at full size													
+scaler_framegen_next	Frame gen starts with the next Scaler start (Lossless.dll was not loaded)													

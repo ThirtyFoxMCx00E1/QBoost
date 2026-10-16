@@ -23,6 +23,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -57,6 +58,7 @@ import com.example.ui.SplashScreen
 import com.example.ui.theme.CyberDarkBg
 import com.example.ui.theme.LocalQboostColors
 import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.materialScheme
 import com.example.ui.theme.resolveQboostColors
 
 class MainActivity : ComponentActivity() {
@@ -248,6 +250,8 @@ fun QboostApp(viewModel: QboostViewModel) {
         LocalLayoutDirection provides layoutDirection,
         LocalQboostColors provides qboostColors
     ) {
+    // Stock Material components (menus, dialogs, switches) follow the chosen Qboost theme too.
+    MaterialTheme(colorScheme = qboostColors.materialScheme(), typography = MaterialTheme.typography) {
     AnimatedContent(
         targetState = currentScreen,
         transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -395,6 +399,7 @@ fun QboostApp(viewModel: QboostViewModel) {
                 )
             }
         }
+    }
     }
     }
 }

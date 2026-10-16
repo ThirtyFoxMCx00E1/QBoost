@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import com.example.ui.theme.Q
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -45,8 +46,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.QboostNeonCyan
-import com.example.ui.theme.TextGray
-import com.example.ui.theme.TextWhite
 import kotlin.math.roundToInt
 
 @Composable
@@ -66,7 +65,7 @@ fun FloatingMultitaskWindow(
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .size(width = 300.dp, height = 210.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xF010131B))
+            .background(Q.hudBg)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Drag Header Bar
@@ -74,7 +73,7 @@ fun FloatingMultitaskWindow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(34.dp)
-                    .background(Color(0xFF191D28))
+                    .background(Q.card)
                     .pointerInput(Unit) {
                         detectDragGestures { change, dragAmount ->
                             change.consume()
@@ -108,7 +107,7 @@ fun FloatingMultitaskWindow(
                             "clock" -> "Stopwatch & Timer"
                             else -> "Floating Companion"
                         },
-                        color = TextWhite,
+                        color = Q.text,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -119,7 +118,7 @@ fun FloatingMultitaskWindow(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close Floating Window",
-                            tint = TextGray,
+                            tint = Q.textDim,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -162,7 +161,7 @@ fun FloatingMultitaskWindow(
                                     }
                                     Text(
                                         text = "Wuthering Waves: Ultimate 120FPS Guide",
-                                        color = TextWhite,
+                                        color = Q.text,
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -175,14 +174,14 @@ fun FloatingMultitaskWindow(
                                     .fillMaxWidth()
                                     .height(3.dp),
                                 color = Color(0xFFE50914),
-                                trackColor = Color(0xFF333A4A)
+                                trackColor = Q.track
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("04:28 / 10:15", color = TextGray, fontSize = 9.sp)
+                                Text("04:28 / 10:15", color = Q.textDim, fontSize = 9.sp)
                                 Text("1080p60 HDR", color = QboostNeonCyan, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -194,7 +193,7 @@ fun FloatingMultitaskWindow(
                                     .fillMaxWidth()
                                     .height(24.dp)
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(Color(0xFF1E2432))
+                                    .background(Q.cardInner)
                                     .padding(horizontal = 8.dp),
                                 contentAlignment = Alignment.CenterStart
                             ) {
@@ -209,12 +208,12 @@ fun FloatingMultitaskWindow(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(Color(0xFF161922))
+                                    .background(Q.cardInner)
                                     .padding(8.dp)
                             ) {
                                 Text(
                                     text = "✦ S-Tier Build: Crit Rate +75%, Energy Recharge +120%\n✦ Best Echo Set: 5-piece Molten Rift\n✦ Rotation: Skill -> Echo -> Liberation -> Heavy Attack",
-                                    color = TextWhite,
+                                    color = Q.text,
                                     fontSize = 10.sp,
                                     lineHeight = 14.sp
                                 )
@@ -227,10 +226,10 @@ fun FloatingMultitaskWindow(
                             onValueChange = { noteText = it },
                             modifier = Modifier.fillMaxSize(),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = TextWhite,
-                                unfocusedTextColor = TextWhite,
+                                focusedTextColor = Q.text,
+                                unfocusedTextColor = Q.text,
                                 focusedBorderColor = QboostNeonCyan,
-                                unfocusedBorderColor = Color(0xFF313848)
+                                unfocusedBorderColor = Q.outline
                             ),
                             textStyle = androidx.compose.ui.text.TextStyle(fontSize = 11.sp)
                         )
@@ -241,7 +240,7 @@ fun FloatingMultitaskWindow(
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Qboost Gaming Companion", color = TextWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Qboost Gaming Companion", color = Q.text, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(4.dp))
                             Text("Background Optimization Active", color = QboostNeonCyan, fontSize = 10.sp)
                         }

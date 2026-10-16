@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import com.example.ui.theme.Q
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -45,8 +46,6 @@ import com.example.ui.theme.QboostHudAccent
 import com.example.ui.theme.QboostNeonCyan
 import com.example.ui.theme.QboostNeonGreen
 import com.example.ui.theme.QboostBlue
-import com.example.ui.theme.TextGray
-import com.example.ui.theme.TextWhite
 
 @Composable
 fun RestrictedSettingsGuideDialog(
@@ -64,7 +63,7 @@ fun RestrictedSettingsGuideDialog(
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFF0F131D))
+                .background(Q.sheet)
                 .padding(20.dp)
         ) {
             Column(
@@ -97,7 +96,7 @@ fun RestrictedSettingsGuideDialog(
                         Column {
                             Text(
                                 text = "Fix 'App was denied access'",
-                                color = TextWhite,
+                                color = Q.text,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -116,7 +115,7 @@ fun RestrictedSettingsGuideDialog(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = TextGray
+                            tint = Q.textDim
                         )
                     }
                 }
@@ -128,28 +127,28 @@ fun RestrictedSettingsGuideDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF1B2232))
+                        .background(Q.cardInner)
                         .padding(12.dp)
                 ) {
                     Row {
                         Icon(
                             imageVector = Icons.Default.Warning,
                             contentDescription = null,
-                            tint = Color(0xFFFFB74D),
+                            tint = Q.amber,
                             modifier = Modifier.size(20.dp).padding(top = 2.dp)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
                                 text = "Why did Android deny access?",
-                                color = Color(0xFFFFB74D),
+                                color = Q.amber,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(3.dp))
                             Text(
                                 text = "When an APK is downloaded via Chrome or outside Google Play, Android automatically locks 'Display over other apps' under Restricted Settings.",
-                                color = TextWhite.copy(alpha = 0.9f),
+                                color = Q.text.copy(alpha = 0.9f),
                                 fontSize = 11.sp,
                                 lineHeight = 16.sp
                             )
@@ -161,7 +160,7 @@ fun RestrictedSettingsGuideDialog(
 
                 Text(
                     text = "Follow these 3 quick steps to unlock it:",
-                    color = TextWhite,
+                    color = Q.text,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -221,7 +220,7 @@ fun RestrictedSettingsGuideDialog(
                     // Button 2: Open Overlay Settings
                     Button(
                         onClick = clickSound(onOpenOverlaySettings),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E2638)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Q.cardInner),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -245,20 +244,20 @@ fun RestrictedSettingsGuideDialog(
                     if (onLaunchDirectly != null && game != null) {
                         Button(
                             onClick = clickSound(onLaunchDirectly),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF141926)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Q.cardInner),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(
                                 imageVector = Icons.Default.PlayArrow,
                                 contentDescription = null,
-                                tint = TextWhite,
+                                tint = Q.text,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "Launch ${game.name} Directly (Without HUD)",
-                                color = TextWhite,
+                                color = Q.text,
                                 fontSize = 12.sp
                             )
                         }
@@ -266,11 +265,11 @@ fun RestrictedSettingsGuideDialog(
 
                     Button(
                         onClick = clickSound(onDismiss),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B2437)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Q.cardInner),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Close Guide", color = TextGray, fontSize = 12.sp)
+                        Text("Close Guide", color = Q.textDim, fontSize = 12.sp)
                     }
                 }
             }
@@ -288,7 +287,7 @@ private fun StepCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF131722))
+            .background(Q.card)
             .padding(10.dp)
     ) {
         Row(verticalAlignment = Alignment.Top) {
@@ -311,14 +310,14 @@ private fun StepCard(
             Column {
                 Text(
                     text = title,
-                    color = TextWhite,
+                    color = Q.text,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = description,
-                    color = TextGray,
+                    color = Q.textDim,
                     fontSize = 11.sp,
                     lineHeight = 15.sp
                 )

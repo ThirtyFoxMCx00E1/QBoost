@@ -102,4 +102,14 @@ class ScalerTuningTest {
         )
         assertEquals("GPU unknown · no Vulkan · 4 cores · 3.7 GB · Low", weak.summary())
     }
+
+    @Test
+    fun flowScaleFollowsQualityAndTier() {
+        assertEquals(1.0f, ScalerTuning.flowScaleFor(ScalerQuality.MAX, HardwareTier.LOW), 0.0001f)
+        assertEquals(0.75f, ScalerTuning.flowScaleFor(ScalerQuality.BALANCED, HardwareTier.HIGH), 0.0001f)
+        assertEquals(0.5f, ScalerTuning.flowScaleFor(ScalerQuality.FAST, HardwareTier.HIGH), 0.0001f)
+        assertEquals(0.8f, ScalerTuning.flowScaleFor(ScalerQuality.AUTO, HardwareTier.HIGH), 0.0001f)
+        assertEquals(0.65f, ScalerTuning.flowScaleFor(ScalerQuality.AUTO, HardwareTier.MID), 0.0001f)
+        assertEquals(0.5f, ScalerTuning.flowScaleFor(ScalerQuality.AUTO, HardwareTier.LOW), 0.0001f)
+    }
 }

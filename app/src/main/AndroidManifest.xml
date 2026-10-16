@@ -43,9 +43,17 @@
             </intent-filter>
         </activity>
 
-        <!-- Invisible screen: only asks Android for permission to capture the game (Upscaler / Frame gen) -->
+        <!-- Invisible screen: only asks Android for permission to capture the game (Scaler) -->
         <activity
             android:name=".service.ScalerPermissionActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Invisible screen: file picker for the user's own Lossless.dll (Scaler frame generation) -->
+        <activity
+            android:name=".scaler.LosslessImportActivity"
             android:exported="false"
             android:excludeFromRecents="true"
             android:taskAffinity=""
