@@ -1,5 +1,10 @@
 package com.example.ui.theme
 
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -27,7 +32,26 @@ data class QboostColors(
     /** The highlighted row in a list (e.g. the current Settings category). */
     val selectedRow: Color = Color(0x26FFFFFF),
     /** Frosted "glass" fill for small buttons/fields that sit right on the background. */
-    val glass: Color = Color(0x33FFFFFF)
+    val glass: Color = Color(0x33FFFFFF),
+    /** Opaque cards (Super Base tiles, panel sections). */
+    val card: Color = Color(0xFF121620),
+    /** Things nested inside a [card]: icon circles, secondary buttons, unselected chips. */
+    val cardInner: Color = Color(0xFF1E2536),
+    /** Empty part of progress bars and sliders. */
+    val track: Color = Color(0xFF222838),
+    /** Dialog / bottom-sheet body. */
+    val sheet: Color = Color(0xFF131722),
+    /** Recessed areas inside a [sheet] (lists, text fields). */
+    val sunken: Color = Color(0xFF0F1219),
+    /** The in-game Qboost panel and the HUD. */
+    val hudBg: Color = Color(0xF2101623),
+    val hudCard: Color = Color(0xFF1B2537),
+    /** Small chips/buttons that float over game art or video. */
+    val scrim: Color = Color(0xCC141720),
+    /** Thin borders of text fields and cards. */
+    val outline: Color = Color(0xFF313848),
+    /** Placeholder text inside fields. */
+    val placeholder: Color = Color(0xFF5A6275)
 )
 
 object ThemeMode {
@@ -71,7 +95,17 @@ val LightQboostColors = QboostColors(
     chip = Color(0xFFEEF2F8),
     divider = Color(0x14000000),
     selectedRow = Color(0x1F0066FF),
-    glass = Color(0x14000000)
+    glass = Color(0x14000000),
+    card = Color(0xFFFFFFFF),
+    cardInner = Color(0xFFEEF2F8),
+    track = Color(0xFFDCE3EC),
+    sheet = Color(0xFFF7F9FC),
+    sunken = Color(0xFFEEF2F8),
+    hudBg = Color(0xF5FFFFFF),
+    hudCard = Color(0xFFEEF2F8),
+    scrim = Color(0xE6FFFFFF),
+    outline = Color(0x1F000000),
+    placeholder = Color(0xFF9AA3AF)
 )
 
 /** Small, safe preset swatches for the Customize pickers - not a full color wheel, but enough real choice. */
@@ -115,10 +149,95 @@ fun resolveQboostColors(settings: AppSettings): QboostColors = when (settings.th
             chip = if (light) Color(0x0F000000) else Color(0x1FFFFFFF),
             divider = if (light) Color(0x14000000) else Color(0x14FFFFFF),
             selectedRow = accent.copy(alpha = 0.16f),
-            glass = if (light) Color(0x14000000) else Color(0x33FFFFFF)
+            glass = if (light) Color(0x14000000) else Color(0x33FFFFFF),
+            card = if (light) Color(0xFFFFFFFF) else surface,
+            cardInner = if (light) Color(0xFFEEF2F8) else Color(0xFF1E2536),
+            track = if (light) Color(0xFFDCE3EC) else Color(0xFF222838),
+            sheet = if (light) Color(0xFFF7F9FC) else surface,
+            sunken = if (light) Color(0xFFEEF2F8) else bg,
+            hudBg = if (light) Color(0xF5FFFFFF) else surface.copy(alpha = 0.95f),
+            hudCard = if (light) Color(0xFFEEF2F8) else Color(0xFF1B2537),
+            scrim = if (light) Color(0xE6FFFFFF) else Color(0xCC141720),
+            outline = if (light) Color(0x1F000000) else Color(0xFF313848),
+            placeholder = if (light) Color(0xFF9AA3AF) else Color(0xFF5A6275)
         )
     }
     else -> DefaultQboostColors
 }
 
 val LocalQboostColors = compositionLocalOf { DefaultQboostColors }
+
+/**
+ * Material 3 colors that match the active Qboost palette, so stock components (drop-down menus,
+ * dialogs, switches, chips) follow Light / Dark / Custom too instead of always being dark.
+ */
+fun QboostColors.materialScheme(): ColorScheme = if (isLight) {
+    lightColorScheme(
+        primary = accent,
+        onPrimary = Color.White,
+        secondary = accent,
+        onSecondary = Color.White,
+        background = background,
+        onBackground = textPrimary,
+        surface = surface,
+        onSurface = textPrimary,
+        surfaceVariant = chip,
+        onSurfaceVariant = textSecondary,
+        surfaceContainer = surface,
+        surfaceContainerHigh = surface,
+        surfaceContainerHighest = cardInner,
+        surfaceContainerLow = sheet,
+        outline = outline,
+        outlineVariant = divider
+    )
+} else {
+    darkColorScheme(
+        primary = accent,
+        onPrimary = Color.White,
+        secondary = accent,
+        onSecondary = Color.White,
+        tertiary = QboostNeonCyan,
+        background = background,
+        onBackground = textPrimary,
+        surface = surface,
+        onSurface = textPrimary,
+        surfaceVariant = CyberSurface,
+        onSurfaceVariant = textSecondary,
+        surfaceContainer = surface,
+        surfaceContainerHigh = hudCard,
+        surfaceContainerHighest = cardInner,
+        surfaceContainerLow = sheet,
+        outline = CyberBorder,
+        outlineVariant = divider
+    )
+}
+
+/** Shorthands for the active palette, for screens that used the fixed dark colors before. */
+object Q {
+    val text: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.textPrimary
+    val textDim: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.textSecondary
+    val background: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.background
+    val card: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.card
+    val cardInner: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.cardInner
+    val track: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.track
+    val sheet: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.sheet
+    val sunken: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.sunken
+    val hudBg: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.hudBg
+    val hudCard: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.hudCard
+    val scrim: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.scrim
+    val outline: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.outline
+    val placeholder: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.placeholder
+    val glass: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.glass
+    val isLight: Boolean @Composable @ReadOnlyComposable get() = LocalQboostColors.current.isLight
+    val accent: Color @Composable @ReadOnlyComposable get() = LocalQboostColors.current.accent
+    /** Accent-colored text: the light glow blue on dark themes, the solid accent on light ones. */
+    val accentText: Color @Composable @ReadOnlyComposable get() =
+        LocalQboostColors.current.let { if (it.isLight) it.accent else QboostBlueGlow }
+    /** Neon status colors are tuned for dark backgrounds; light themes get deeper shades with real contrast. */
+    val cyan: Color @Composable @ReadOnlyComposable get() =
+        if (LocalQboostColors.current.isLight) Color(0xFF00838F) else QboostNeonCyan
+    val green: Color @Composable @ReadOnlyComposable get() =
+        if (LocalQboostColors.current.isLight) Color(0xFF00873E) else QboostNeonGreen
+    val amber: Color @Composable @ReadOnlyComposable get() =
+        if (LocalQboostColors.current.isLight) Color(0xFFC25E00) else Color(0xFFFFB74D)
+}

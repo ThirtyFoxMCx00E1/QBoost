@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import com.example.ui.theme.Q
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -50,8 +51,6 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.model.InstalledAppItem
 import com.example.ui.theme.QboostNeonCyan
 import com.example.ui.theme.QboostBlue
-import com.example.ui.theme.TextGray
-import com.example.ui.theme.TextWhite
 
 /**
  * Add-game dialog.
@@ -112,7 +111,7 @@ fun AddGameDialog(
         Box(
             modifier = containerModifier
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFF13161F))
+                .background(Q.sheet)
                 .padding(if (isLandscape) 14.dp else 20.dp)
                 .testTag("add_game_dialog")
         ) {
@@ -150,7 +149,7 @@ fun AddGameDialog(
                         Column {
                             Text(
                                 text = "Selected app",
-                                color = TextGray,
+                                color = Q.textDim,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -158,13 +157,13 @@ fun AddGameDialog(
                             val chosen = selectedApp
                             Text(
                                 text = chosen?.name ?: "Tap an app on the left",
-                                color = if (chosen != null) TextWhite else TextGray,
+                                color = if (chosen != null) Q.text else Q.textDim,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1
                             )
                             if (chosen != null) {
-                                Text(chosen.packageName, color = TextGray, fontSize = 10.sp, maxLines = 1)
+                                Text(chosen.packageName, color = Q.textDim, fontSize = 10.sp, maxLines = 1)
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             AddGameNameField(customGameName) { customGameName = it }
@@ -223,7 +222,7 @@ private fun AddGameHeader(onDismiss: () -> Unit) {
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Add Game to Game Space",
-                color = TextWhite,
+                color = Q.text,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -232,7 +231,7 @@ private fun AddGameHeader(onDismiss: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "Close",
-                tint = TextGray,
+                tint = Q.textDim,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -244,20 +243,20 @@ private fun AddGameSearchField(query: String, onChange: (String) -> Unit) {
     OutlinedTextField(
         value = query,
         onValueChange = onChange,
-        placeholder = { Text("Search installed games & apps...", color = Color(0xFF5A6275), fontSize = 12.sp) },
+        placeholder = { Text("Search installed games & apps...", color = Q.placeholder, fontSize = 12.sp) },
         leadingIcon = {
-            Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = TextGray, modifier = Modifier.size(18.dp))
+            Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = Q.textDim, modifier = Modifier.size(18.dp))
         },
         modifier = Modifier
             .fillMaxWidth()
             .testTag("game_search_input"),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = TextWhite,
-            unfocusedTextColor = TextWhite,
+            focusedTextColor = Q.text,
+            unfocusedTextColor = Q.text,
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent,
-            focusedContainerColor = Color(0xFF1B2333),
-            unfocusedContainerColor = Color(0xFF1B2333),
+            focusedContainerColor = Q.cardInner,
+            unfocusedContainerColor = Q.cardInner,
             cursorColor = QboostBlue
         ),
         singleLine = true
@@ -274,7 +273,7 @@ private fun AddGameAppList(
     Column(modifier = modifier) {
         Text(
             text = "Pick an application to boost:",
-            color = TextGray,
+            color = Q.textDim,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium
         )
@@ -285,7 +284,7 @@ private fun AddGameAppList(
                 .weight(1f, fill = true)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF0D0F16))
+                .background(Q.sunken)
                 .padding(6.dp)
         ) {
             if (filteredApps.isEmpty()) {
@@ -297,7 +296,7 @@ private fun AddGameAppList(
                 ) {
                     Text(
                         text = "No games classified by OS on this device.",
-                        color = TextGray,
+                        color = Q.textDim,
                         fontSize = 12.sp
                     )
                 }
@@ -321,12 +320,12 @@ private fun AddGameAppList(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(if (app.isGame) QboostBlue else Color(0xFF222938)),
+                                    .background(if (app.isGame) QboostBlue else Q.cardInner),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     app.name.take(1).uppercase(),
-                                    color = TextWhite,
+                                    color = Q.text,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -336,7 +335,7 @@ private fun AddGameAppList(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         app.name,
-                                        color = TextWhite,
+                                        color = Q.text,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
@@ -352,16 +351,16 @@ private fun AddGameAppList(
                                         }
                                     }
                                 }
-                                Text(app.packageName, color = TextGray, fontSize = 10.sp, maxLines = 1)
+                                Text(app.packageName, color = Q.textDim, fontSize = 10.sp, maxLines = 1)
                             }
                             if (app.isAlreadyAdded) {
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(Color(0xFF2A3447))
+                                        .background(Q.cardInner)
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
-                                    Text("ADDED", color = Color(0xFFA0AEC0), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                    Text("ADDED", color = Q.textDim, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                 }
                             } else if (isSelected) {
                                 Icon(
@@ -384,18 +383,18 @@ private fun AddGameNameField(name: String, onChange: (String) -> Unit) {
     OutlinedTextField(
         value = name,
         onValueChange = onChange,
-        label = { Text("Game Name", color = TextGray, fontSize = 11.sp) },
-        placeholder = { Text("Custom game name...", color = Color(0xFF5A6275), fontSize = 12.sp) },
+        label = { Text("Game Name", color = Q.textDim, fontSize = 11.sp) },
+        placeholder = { Text("Custom game name...", color = Q.placeholder, fontSize = 12.sp) },
         modifier = Modifier
             .fillMaxWidth()
             .testTag("game_name_input"),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = TextWhite,
-            unfocusedTextColor = TextWhite,
+            focusedTextColor = Q.text,
+            unfocusedTextColor = Q.text,
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent,
-            focusedContainerColor = Color(0xFF1B2333),
-            unfocusedContainerColor = Color(0xFF1B2333),
+            focusedContainerColor = Q.cardInner,
+            unfocusedContainerColor = Q.cardInner,
             cursorColor = QboostBlue
         ),
         singleLine = true

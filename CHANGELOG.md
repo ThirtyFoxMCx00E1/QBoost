@@ -1,5 +1,32 @@
 # Changelog
 
+## v10.162.25 (versionCode 28)
+
+**The Scaler is real now: LSFG frame generation from Lossless Scaling.** The old Scaler drew an OpenGL blend
+that looked like frame gen but made nothing smoother and cost a lot of FPS. It has been removed. Frame gen now
+runs the LSFG engine taken from DroidDeck (Eden emulator project / lsfg-vk work, ported by @maxjivi05). Captured
+frames go straight into Vulkan with no CPU copy. The generated frames are paced between the real ones and shown
+on an overlay that lets touches through. The Scaler card has **x2 / x3 / x4** chips and shows live
+"source → shown fps".
+
+- **Your own Lossless.dll:** copy it from Steam (Lossless Scaling > Manage > Browse local files) to the phone,
+  then tap **Import Lossless.dll** in the Scaler card. Qboost checks the file and builds the shader cache once.
+  The DLL is never shipped or downloaded.
+- **Capture quality** now also sets LSFG's flow scale (Max 1.0, Balanced 0.75, Fast 0.5, Auto by hardware tier).
+- **Upscale** uses root (Android Game Mode downscale) to make the game really render fewer pixels, and the
+  display scales it back up for free. Without root it tells you instead of faking it.
+- Requirements: Android 14+, a 64-bit phone (arm64-v8a or x86_64) and a GPU that passes LSFG's checks
+  (Adreno 7xx-class or better). The card shows the reason when a GPU cannot run it.
+- Settings > Display "Scaler sharpness" was removed (nothing sharpens any more).
+- Licensing: the LSFG code is GPL-3.0-or-later. See `docs/SCALER_SOURCES.md`.
+
+**Light mode everywhere in the game cockpit.** These screens kept dark-theme colors in Light mode: the
+simulated in-game cockpit, the Qboost panel, the game settings sheet, the HUD and the floating multitask
+window. So did View details, the ≡ menu and what it opens (Add game, Super Base, Purge RAM, HUD permission
+help). They now follow the active theme, with deeper status colors for contrast on white.
+- The **LB / RB** badges next to the tabs are readable on the light background.
+- Stock menus, switches and dialogs follow the Qboost palette.
+
 ## v10.161.24 (versionCode 27)
 
 **One "Scaler" tile (Upscaler + Frame gen merged).** The two tiles in the in-game panel are now a single

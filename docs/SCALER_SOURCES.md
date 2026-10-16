@@ -1,35 +1,47 @@
-# Scaler: what it is built from, and what was reviewed
+# Scaler: what it is built from
 
-Qboost's **Scaler** (one tile in the in-game panel) combines two things on a screen capture of your game:
-**Upscale** (capture at a hardware-tuned size, scale back up, sharpen) and **Frame gen** (an in-between frame
-after every captured frame). Both run in the built-in OpenGL ES engine (`ScalerRenderer`), which works on any
-phone with Android 14+ screen sharing, including low-end ones.
+Qboost's **Scaler** (one tile in the in-game panel) works on a screen capture of your game (Android 14+,
+"share a single app"):
 
-## What is in the built-in engine
+- **Frame gen** is real **LSFG**, the frame generation of [Lossless Scaling](https://store.steampowered.com/app/993090/).
+  The captured frames are imported straight into Vulkan (no CPU copy) and run through the LSFG engine on the
+  GPU. The real and generated frames are then shown on a full-screen overlay that lets every touch through.
+  You can pick **x2, x3 or x4**, like in Lossless Scaling.
+- **Upscale** uses root to ask Android's Game Mode to render the game smaller (`cmd game set --downscale`). The
+  capture is taken at that size, and the display hardware scales it back up to the screen, which costs no
+  GPU time. Without root it says so instead of pretending.
 
-| Part | Origin |
-| --- | --- |
-| Sharpening pass | Algorithm: **AMD FidelityFX Contrast Adaptive Sharpening (CAS)**, MIT license. Written from the published algorithm for GLES 2. |
-| Frame interpolation | Qboost's own: block-matching motion estimation on a 1/8-size copy, then both frames are warped half-way and blended. |
-| Hardware probe (`native/qboost_hw`) | Qboost's own plain C, built with the Android NDK for arm64-v8a, armeabi-v7a, x86, x86_64. No third-party code. |
+The old OpenGL "Scaler" (sharpening plus a block-matching blend) is gone. It used up frame time without
+making the game smoother.
 
-## Projects that were reviewed and are NOT integrated (and why)
+## Your own Lossless.dll (never shipped)
 
-| Project | License | What it really is | Why it is not in the app |
-| --- | --- | --- | --- |
-| **Arm Accuracy Super Resolution** (Arm ASR) | MIT | A *temporal* upscaler (FSR 2 family). | Needs per-frame **motion vectors, depth and jitter from the game engine**, which a screen capture of another app does not have. The uploaded zip is also only an index repo (README + license); the real libraries are git submodules that were not included. |
-| **LSFG-Android** (wrapper) | MIT | Pointer repo for the Android port of lsfg-vk. | The zip contains only README/LICENSE/.gitmodules; the code is in submodules that were not included. |
-| **lsfg-vk-android** (`framegen/`) | MIT | Vulkan compute frame generation (Lossless Scaling's "LSFG 3.1" technique). | Its shaders are produced at run time from **`Lossless.dll`, which you must own** (paid Lossless Scaling on Steam); nothing can be bundled. It also needs three submodules (`dxbc`, `pe-parse`, `volk`) that are empty in the upload, and targets **arm64-v8a / x86_64 only**, Android 10+, and realistically **Adreno 7xx-class GPUs or better**. |
-| **LSFG-Android-Application** | GPL-3.0 (its README adds "no Play Store / no commercial use") | The Android app around lsfg-vk. | Copying its code would put Qboost under those terms. Qboost would need its own glue code against the MIT `framegen` library instead. |
-| **OpenFG** | **Proprietary EULA, "all rights reserved", binary only** | A root (KernelSU/Magisk + Zygisk) module that hooks games. | Not open source and not redistributable; the upload contains no code. Needs root. |
-| **RealSR-NCNN-Android** | MIT | Offline *image* upscaler (Real-ESRGAN, Waifu2x, Anime4K models via ncnn + Vulkan). | Neural models take seconds per image; they cannot run on game frames in real time on a phone. Useful for photos/screenshots only. |
-| **Bannerlator** | GPL-3.0 | A Wine/Box64 emulator (Winlator fork) that loads lsfg-vk inside its own Wine process. | It controls the game process, which Qboost cannot do for ordinary Android games. Reference only. |
+The LSFG shaders come from **your** copy of Lossless Scaling. Qboost does not include them and never downloads them.
 
-## What would be needed to add LSFG frame generation later
+1. On your PC: Steam > Lossless Scaling > Manage > Browse local files, then copy `Lossless.dll` to the phone.
+2. In a game: Qboost panel > Scaler > **Import Lossless.dll**, then pick the file.
+3. Qboost checks that it is the real DLL with the LSFG shaders inside, translates them to SPIR-V once
+   (`files/lsfg/shaders-<id>.cache`), and keeps the DLL inside the app's private storage.
 
-1. The full sources with submodules: `git clone --recurse-submodules` of **lsfg-vk-android** (and zip the result).
-2. A decision on licensing: use only the MIT `framegen` library plus Qboost's own glue (keeps Qboost free of GPL),
-   or accept GPL-3 and reuse the app code.
-3. Your own `Lossless.dll` imported on the phone (Qboost can never ship it).
-4. A phone that can run it (Adreno 7xx-class or better). The hardware probe already reports whether a phone
-   qualifies (`HardwareProfile.heavyVulkanCandidate`), and the built-in engine would stay as the fallback.
+## Requirements
+
+- Android 14+ (single-app screen sharing). The frame gen library is for **arm64-v8a and x86_64**.
+- A Vulkan GPU that passes LSFG's feature checks. Realistically that means Adreno 7xx-class or better. The
+  Scaler card shows the driver's reason when a GPU cannot run it.
+- Upscale (real lower render size) needs root.
+
+## Where the code comes from
+
+| Part | Origin | License |
+| --- | --- | --- |
+| `native/qboost_lsfg/lsfg/` (LSFG engine, DLL reader, shader translation, governor, pacer) | [DroidDeck](https://github.com/ThirtyFoxMCx00E1/DroidDeck) `app/src/main/cpp/framegen/lsfg`. That is the work of Camille LaVey and the [Eden](https://eden-emu.dev) emulator project, following [lsfg-vk](https://github.com/PancakeTAS/lsfg-vk) by PancakeTAS, ported to WinNative and DroidDeck by [@maxjivi05](https://github.com/maxjivi05). Copied unchanged, without DroidDeck's `lsfg_jni.cpp`. | GPL-3.0-or-later |
+| `native/qboost_lsfg/thirdparty/dxbc/` (DXBC to SPIR-V) | DXVK's dxbc (Philip Rebohle, Joshua Ashton, Robin Kertels, Jeffrey Ellison), via DroidDeck | zlib |
+| `native/qboost_lsfg/qboost_lsfg*.{h,cpp}` (Vulkan device and swapchain, AHardwareBuffer import, pacing, JNI) | Qboost, written against the files above | GPL-3.0-or-later |
+| `app/src/main/java/com/example/scaler/Lossless.kt` | Adapted from DroidDeck's `gpu/Lossless.kt` (import, check and cache) | GPL-3.0-or-later |
+| Hardware probe (`native/qboost_hw`) | Qboost's own plain C | MIT |
+
+**License note:** the LSFG code is GPL-3.0-or-later. An APK that contains `libqboost_lsfg.so` must be
+distributed under GPL-3.0-or-later, with the source available. The rest of the Qboost source stays under its
+MIT license, which is GPL-compatible.
+
+Lossless Scaling and its shaders belong to their developer. Qboost is not affiliated with Lossless Scaling or Valve.

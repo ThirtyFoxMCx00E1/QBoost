@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import com.example.ui.theme.Q
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -55,7 +56,6 @@ import com.example.model.PerformanceStats
 import com.example.ui.theme.QboostHudAccent
 import com.example.ui.theme.QboostNeonCyan
 import com.example.ui.theme.QboostBlue
-import com.example.ui.theme.TextWhite
 
 @Composable
 fun InGameCockpitScreen(
@@ -132,12 +132,12 @@ fun InGameCockpitScreen(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(Color(0xCC141720))
+                    .background(Q.scrim)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back to Lobby",
-                    tint = TextWhite,
+                    tint = Q.text,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -145,12 +145,12 @@ fun InGameCockpitScreen(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color(0xAA10131B))
+                    .background(Q.scrim)
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = "RUNNING: ${game.name.uppercase()}",
-                    color = TextWhite,
+                    color = Q.text,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -164,7 +164,7 @@ fun InGameCockpitScreen(
                 .width(18.dp)
                 .height(72.dp)
                 .clip(RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
-                .background(if (isPanelVisible) QboostHudAccent else Color(0xCC141822))
+                .background(if (isPanelVisible) QboostHudAccent else Q.scrim)
                 .qClickable { isPanelVisible = !isPanelVisible }
                 .testTag("left_edge_tab"),
             contentAlignment = Alignment.Center
@@ -172,7 +172,7 @@ fun InGameCockpitScreen(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Swipe or Tap to Open Qboost",
-                tint = TextWhite,
+                tint = Q.text,
                 modifier = Modifier.size(16.dp)
             )
         }

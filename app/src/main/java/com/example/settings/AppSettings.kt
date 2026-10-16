@@ -43,6 +43,7 @@ object SettingsStore {
     const val KEY_UPDATE_ALERTS = "update_alerts"
     const val KEY_SCALER_MODE = "scaler_mode"
     const val KEY_SCALER_QUALITY = "scaler_quality"
+    const val KEY_SCALER_MULTIPLIER = "scaler_multiplier"
     const val KEY_THEME_MODE = "theme_mode"
     const val KEY_CUSTOM_BACKGROUND = "custom_background"
     const val KEY_CUSTOM_ACCENT = "custom_accent"
@@ -68,6 +69,16 @@ object SettingsStore {
     fun setScalerQuality(context: Context, quality: Int) {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit().putInt(KEY_SCALER_QUALITY, quality.coerceIn(ScalerQuality.AUTO, ScalerQuality.FAST)).apply()
+    }
+
+    /** Frame gen multiplier like Lossless Scaling: 2 = x2, 3 = x3, 4 = x4. */
+    fun scalerMultiplier(context: Context): Int =
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getInt(KEY_SCALER_MULTIPLIER, 2).coerceIn(2, 4)
+
+    fun setScalerMultiplier(context: Context, multiplier: Int) {
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_SCALER_MULTIPLIER, multiplier.coerceIn(2, 4)).apply()
     }
 
     fun load(context: Context): AppSettings {

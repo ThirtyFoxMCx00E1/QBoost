@@ -132,6 +132,7 @@ import com.example.ui.components.clickSound
 import com.example.ui.components.qClickable
 import com.example.ui.theme.CyberDarkBg
 import com.example.ui.theme.LocalQboostColors
+import com.example.ui.theme.Q
 import com.example.ui.theme.QboostBlue
 import com.example.ui.theme.QboostBlueDark
 import com.example.ui.theme.QboostBlueGlow
@@ -926,12 +927,13 @@ private fun PadBadge(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(7.dp))
-            .background(Color(0x40FFFFFF))
+            .background(if (Q.isLight) Q.cardInner else Color(0x40FFFFFF))
+            .then(if (Q.isLight) Modifier.border(1.dp, Q.outline, RoundedCornerShape(7.dp)) else Modifier)
             .qClickable(onClick = onClick)
             .padding(horizontal = 7.dp, vertical = 3.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = text, color = TextWhite, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Text(text = text, color = Q.text, fontSize = 10.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -1021,7 +1023,7 @@ private fun MainMenu(
     onFixAccess: () -> Unit,
     onOpenSuperBase: () -> Unit
 ) {
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss, containerColor = LocalQboostColors.current.surface) {
         DropdownMenuItem(
             text = { Text(tr("add_game")) },
             leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },

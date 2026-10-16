@@ -16,13 +16,14 @@ import com.example.i18n.I18n
 import com.example.settings.SettingsStore
 
 /**
- * Invisible screen that shows Android's "start capturing?" question for the Upscaler / Frame gen
+ * Invisible screen that shows Android's "start capturing?" question for the Scaler
  * and hands the answer to [ScalerService]. It closes itself right away.
  */
 class ScalerPermissionActivity : ComponentActivity() {
 
     private var upscaler = false
     private var frameGen = false
+    private var gamePackage = ""
     private var language = "en"
 
     private val captureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -34,6 +35,7 @@ class ScalerPermissionActivity : ComponentActivity() {
             intent.putExtra(ScalerService.EXTRA_RESULT_DATA, data)
             intent.putExtra(ScalerService.EXTRA_UPSCALER, upscaler)
             intent.putExtra(ScalerService.EXTRA_FRAME_GEN, frameGen)
+            intent.putExtra(ScalerService.EXTRA_GAME_PACKAGE, gamePackage)
             ContextCompat.startForegroundService(this, intent)
         } else {
             Toast.makeText(this, I18n.t(language, "scaler_denied"), Toast.LENGTH_LONG).show()
@@ -48,6 +50,7 @@ class ScalerPermissionActivity : ComponentActivity() {
         language = SettingsStore.load(this).language
         upscaler = intent.getBooleanExtra(ScalerService.EXTRA_UPSCALER, false)
         frameGen = intent.getBooleanExtra(ScalerService.EXTRA_FRAME_GEN, false)
+        gamePackage = intent.getStringExtra(ScalerService.EXTRA_GAME_PACKAGE).orEmpty()
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             Toast.makeText(this, I18n.t(language, "scaler_need_android14"), Toast.LENGTH_LONG).show()

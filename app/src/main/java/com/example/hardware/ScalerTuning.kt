@@ -89,6 +89,21 @@ object ScalerTuning {
         }
     }
 
+    /**
+     * LSFG flow scale (the resolution its motion estimation runs at, like "Flow scale" in Lossless
+     * Scaling). Lower is faster on weak GPUs and blurrier on fast motion.
+     */
+    fun flowScaleFor(quality: Int, tier: HardwareTier): Float = when (quality) {
+        ScalerQuality.MAX -> 1.0f
+        ScalerQuality.BALANCED -> 0.75f
+        ScalerQuality.FAST -> 0.5f
+        else -> when (tier) { // AUTO
+            HardwareTier.HIGH -> 0.8f
+            HardwareTier.MID -> 0.65f
+            HardwareTier.LOW -> 0.5f
+        }
+    }
+
     /** [px] * [scale], rounded to an even number (video surfaces prefer even sizes), never below 2. */
     fun scaledSize(px: Int, scale: Float): Int {
         val v = Math.round(px * scale.toDouble()).toInt()

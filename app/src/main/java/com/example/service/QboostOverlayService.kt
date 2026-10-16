@@ -57,6 +57,8 @@ import com.example.hardware.HardwareProbe
 import com.example.hardware.HardwareProfile
 import com.example.hardware.RamBooster
 import com.example.hardware.ScalerMode
+import com.example.scaler.LosslessImportActivity
+import com.example.scaler.ScalerSupport
 import com.example.hardware.ScalerTuning
 import com.example.hardware.TelemetryFormat
 import com.example.i18n.I18n
@@ -155,6 +157,9 @@ class QboostOverlayService : Service() {
     private var scalerHwText: TextView? = null
     private val scalerModeChips = arrayOfNulls<TextView>(3)
     private val scalerQualityChips = arrayOfNulls<TextView>(4)
+    private val scalerMultiplierChips = arrayOfNulls<TextView>(3)
+    private var scalerLosslessText: TextView? = null
+    private var scalerImportButton: TextView? = null
     private var hapticsTile: TextView? = null
     private var rotationLockTile: TextView? = null
     private var dndTile: TextView? = null
@@ -263,6 +268,7 @@ class QboostOverlayService : Service() {
             .registerOnSharedPreferenceChangeListener(prefsListener)
         ScalerService.onStateChanged = { mainHandler.post { updateScalerTiles() } }
         ScalerService.onOverlayAdded = { mainHandler.post { bringOverlaysToFront() } }
+        ScalerSupport.onLosslessChanged = { mainHandler.post { loadHardwareLine() } }
         startForegroundServiceNotification()
         startFrameTracking()
     }
@@ -1330,6 +1336,13 @@ class QboostOverlayService : Service() {
             ) { index -> onScalerMode(index) }
         )
 
+        val multiplierLabel = label(s("scaler_multiplier"), 10f, C_GRAY)
+        multiplierLabel.setPadding(dp(3), dp(6), 0, 0)
+        card.addView(multiplierLabel)
+        card.addView(
+            scalerChipRow(listOf("x2", "x3", "x4"), scalerMultiplierChips) { index -> onScalerMultiplier(index + 2) }
+        )
+
         val qualityLabel = label(s("scaler_quality"), 10f, C_GRAY)
         qualityLabel.setPadding(dp(3), dp(6), 0, 0)
         card.addView(qualityLabel)
@@ -1345,9 +1358,16 @@ class QboostOverlayService : Service() {
         scalerHwText = hardware
         card.addView(hardware)
 
+        val lossless = label("", 9.5f, C_GRAY)
+        lossless.setPadding(dp(3), dp(2), 0, dp(2))
+        scalerLosslessText = lossless
+        card.addView(lossless)
+
+        val importTile = toolTile(s("lsfg_import")) { onImportLossless() }
+        scalerImportButton = importTile
         val start = toolTile(s("scaler_start")) { onScalerStartStop() }
         scalerStartButton = start
-        card.addView(toolRow(start))
+        card.addView(toolRow(importTile, start))
 
         scalerCard = card
         return card
@@ -1370,6 +1390,22 @@ class QboostOverlayService : Service() {
         // Changing the mode while it runs takes effect immediately.
         ScalerService.instance?.applyConfig(ScalerMode.upscale(mode), ScalerMode.frameGen(mode))
         updateScalerTiles()
+    }
+
+    private fun onScalerMultiplier(multiplier: Int) {
+        SettingsStore.setScalerMultiplier(this, multiplier)
+        updateScalerChips()
+        ScalerService.instance?.applyMultiplier(multiplier)
+    }
+
+    /** Opens the system file picker for the user's own Lossless.dll (copied from their Steam folder). */
+    private fun onImportLossless() {
+        try {
+            startActivity(Intent(this, LosslessImportActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            Toast.makeText(this, s("lsfg_import_hint"), Toast.LENGTH_LONG).show()
+            setPanelExpanded(false)
+        } catch (_: Exception) {
+        }
     }
 
     private fun onScalerQuality(quality: Int) {
@@ -1396,6 +1432,7 @@ class QboostOverlayService : Service() {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.putExtra(ScalerService.EXTRA_UPSCALER, ScalerMode.upscale(mode))
         intent.putExtra(ScalerService.EXTRA_FRAME_GEN, ScalerMode.frameGen(mode))
+        intent.putExtra(ScalerService.EXTRA_GAME_PACKAGE, activeGamePackage)
         try {
             startActivity(intent)
             setPanelExpanded(false)
@@ -1409,6 +1446,8 @@ class QboostOverlayService : Service() {
         for (i in scalerModeChips.indices) scalerModeChips[i]?.let { styleTile(it, i == mode) }
         val quality = SettingsStore.scalerQuality(this)
         for (i in scalerQualityChips.indices) scalerQualityChips[i]?.let { styleTile(it, i == quality) }
+        val multiplier = SettingsStore.scalerMultiplier(this)
+        for (i in scalerMultiplierChips.indices) scalerMultiplierChips[i]?.let { styleTile(it, i + 2 == multiplier) }
     }
 
     /** Hardware line: read the real GPU / RAM on the background thread, then show what the Scaler will use. */
@@ -1416,14 +1455,35 @@ class QboostOverlayService : Service() {
         val handler = workHandler ?: return
         handler.post {
             val profile = HardwareProbe.get(this)
-            mainHandler.post { scalerHwText?.text = describeHardware(profile) }
+            val report = ScalerSupport.report(this)
+            mainHandler.post {
+                scalerHwText?.text = describeHardware(profile, report)
+                scalerLosslessText?.let {
+                    it.text = describeLossless(report)
+                    it.setTextColor(if (report.frameGenReady) C_GREEN else C_AMBER)
+                }
+            }
         }
     }
 
-    private fun describeHardware(profile: HardwareProfile): String {
-        val scale = ScalerTuning.scaleFor(SettingsStore.scalerQuality(this), profile.tier)
-        return profile.summary() + "\n" + s("scaler_engine") + " · " + s("scaler_capture") + " " +
-            (scale * 100).roundToInt() + "%"
+    private fun describeHardware(profile: HardwareProfile, report: ScalerSupport.Report): String {
+        val quality = SettingsStore.scalerQuality(this)
+        val scale = ScalerTuning.scaleFor(quality, profile.tier)
+        val flow = ScalerTuning.flowScaleFor(quality, profile.tier)
+        val engine = if (report.frameGenPossible) {
+            s("scaler_engine") + " · " + s("scaler_capture") + " " + (scale * 100).roundToInt() + "% · flow " +
+                String.format(java.util.Locale.US, "%.2f", flow)
+        } else if (!report.libraryLoaded) {
+            s("lsfg_unsupported_abi")
+        } else {
+            s("lsfg_gpu_unsupported") + ": " + report.gpuProblem.removePrefix("unsupported: ")
+        }
+        return profile.summary() + "\n" + engine
+    }
+
+    private fun describeLossless(report: ScalerSupport.Report): String = when {
+        report.losslessReady -> s("lsfg_dll_ready") + if (report.shaderVariant.isNotBlank()) " (${report.shaderVariant})" else ""
+        else -> s("lsfg_dll_missing")
     }
 
     private fun updateScalerTiles() {
@@ -1434,7 +1494,13 @@ class QboostOverlayService : Service() {
             styleTile(it, running)
         }
         scalerStatusText?.let {
-            it.text = if (running) s("scaler_running") else s("scaler_off")
+            it.text = when {
+                !running -> s("scaler_off")
+                ScalerService.shownFps > 0f && ScalerService.lsfgActive ->
+                    "${ScalerService.sourceFps.roundToInt()} → ${ScalerService.shownFps.roundToInt()} fps"
+                ScalerService.shownFps > 0f -> "${ScalerService.shownFps.roundToInt()} fps"
+                else -> s("scaler_running")
+            }
             it.setTextColor(if (running) C_GREEN else C_GRAY)
         }
     }
@@ -1851,6 +1917,7 @@ class QboostOverlayService : Service() {
         mainHandler.removeCallbacks(rebuildRunnable)
         ScalerService.onStateChanged = null
         ScalerService.onOverlayAdded = null
+        ScalerSupport.onLosslessChanged = null
         ScalerService.instance?.stopScaler()
         floatingApps?.closeAll()
         floatingApps = null

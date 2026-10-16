@@ -69,7 +69,7 @@ import com.example.details.GameDetails
 import com.example.i18n.tr
 import com.example.model.GameItem
 import com.example.ui.components.qClickable
-import com.example.ui.theme.CyberDarkBg
+import com.example.ui.theme.Q
 import com.example.ui.theme.QboostBlue
 import com.example.ui.theme.QboostBlueDark
 import com.example.ui.theme.QboostBlueGlow
@@ -107,7 +107,7 @@ fun GameDetailsScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(CyberDarkBg)
+            .background(Q.background)
     ) {
         if (art != null) {
             Image(
@@ -124,7 +124,11 @@ fun GameDetailsScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0xCC070A12), Color(0xE6070A12), Color(0xFF070A12))
+                        if (Q.isLight) {
+                            listOf(Q.background.copy(alpha = 0.78f), Q.background.copy(alpha = 0.9f), Q.background)
+                        } else {
+                            listOf(Color(0xCC070A12), Color(0xE6070A12), Color(0xFF070A12))
+                        }
                     )
                 )
         )
@@ -501,7 +505,7 @@ private fun InfoPanel(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = details.title.ifBlank { game.name },
-                    color = TextWhite,
+                    color = Q.text,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -510,7 +514,7 @@ private fun InfoPanel(
                 if (details.summary.isNotBlank()) {
                     Text(
                         text = details.summary,
-                        color = TextGray,
+                        color = Q.textDim,
                         fontSize = 12.sp,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
@@ -524,7 +528,7 @@ private fun InfoPanel(
         if (isLoading) {
             Text(
                 text = tr("details_loading"),
-                color = QboostBlueGlow,
+                color = Q.accentText,
                 fontSize = 11.sp,
                 modifier = Modifier.padding(top = 4.dp)
             )
@@ -540,12 +544,12 @@ private fun InfoPanel(
                 details.genres.forEach { genre ->
                     Text(
                         text = genre,
-                        color = TextWhite,
+                        color = Q.text,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Color(0x33FFFFFF))
+                            .background(Q.glass)
                             .padding(horizontal = 12.dp, vertical = 5.dp)
                     )
                 }
@@ -569,14 +573,14 @@ private fun InfoPanel(
         Spacer(modifier = Modifier.height(14.dp))
         Text(
             text = tr("details_intro"),
-            color = TextWhite,
+            color = Q.text,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = details.description.ifBlank { "--" },
-            color = TextGray,
+            color = Q.textDim,
             fontSize = 12.sp,
             lineHeight = 17.sp
         )
@@ -589,15 +593,15 @@ private fun RatingBlock(details: GameDetails) {
     Column(horizontalAlignment = Alignment.End) {
         Text(
             text = if (details.rating >= 0f) String.format(Locale.US, "%.1f", details.rating) else "--",
-            color = TextWhite,
+            color = Q.text,
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold
         )
-        Text(text = tr("details_rating"), color = TextGray, fontSize = 11.sp)
+        Text(text = tr("details_rating"), color = Q.textDim, fontSize = 11.sp)
         if (details.ratingCount >= 0L) {
-            Text(text = "(${formatCount(details.ratingCount)})", color = TextGray, fontSize = 10.sp)
+            Text(text = "(${formatCount(details.ratingCount)})", color = Q.textDim, fontSize = 10.sp)
         }
-        Text(text = "Google Play", color = QboostBlueGlow, fontSize = 9.sp, fontWeight = FontWeight.Medium)
+        Text(text = "Google Play", color = Q.accentText, fontSize = 9.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -612,7 +616,7 @@ private fun formatCount(count: Long): String = when {
 private fun InfoCell(label: String, value: String, modifier: Modifier = Modifier) {
     Text(
         text = "$label: ${value.ifBlank { "--" }}",
-        color = TextGray,
+        color = Q.textDim,
         fontSize = 12.sp,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
@@ -626,12 +630,12 @@ private fun RequirementsCard(details: GameDetails) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x26FFFFFF))
+            .background(if (Q.isLight) Q.card else Color(0x26FFFFFF))
             .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Text(
             text = tr("details_requirements"),
-            color = TextWhite,
+            color = Q.text,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
         )
@@ -653,10 +657,10 @@ private fun RequirementRow(label: String, value: String) {
             .fillMaxWidth()
             .padding(vertical = 2.dp)
     ) {
-        Text(text = label, color = TextGray, fontSize = 12.sp, modifier = Modifier.weight(1f))
+        Text(text = label, color = Q.textDim, fontSize = 12.sp, modifier = Modifier.weight(1f))
         Text(
             text = value.ifBlank { "--" },
-            color = TextWhite,
+            color = Q.text,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
@@ -681,7 +685,7 @@ private fun DetailsBottomBar(game: GameItem, onBack: () -> Unit, onStart: () -> 
             modifier = Modifier
                 .size(46.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(Color(0x33FFFFFF))
+                .background(Q.glass)
                 .qClickable(onClick = onBack)
                 .testTag("details_grid_button"),
             contentAlignment = Alignment.Center
@@ -689,7 +693,7 @@ private fun DetailsBottomBar(game: GameItem, onBack: () -> Unit, onStart: () -> 
             Icon(
                 imageVector = Icons.Default.Apps,
                 contentDescription = null,
-                tint = TextWhite,
+                tint = Q.text,
                 modifier = Modifier.size(24.dp)
             )
         }
